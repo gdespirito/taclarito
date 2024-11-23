@@ -13,7 +13,7 @@ class CategorizeMovements implements ShouldQueue
 {
     use Queueable;
 
-    const CHUNK_SIZE = 2;
+    const CHUNK_SIZE = 4;
 
     /**
      * Create a new job instance.
@@ -29,16 +29,7 @@ class CategorizeMovements implements ShouldQueue
     public function handle(): void
     {
         Movement::where('user_id', $this->user->id)->chunk(static::CHUNK_SIZE, function ($movements) {
-            $response = Http::llmApi()->post('categorize', [
-                'data' => json_encode($movements),
-            ])->json();
-
-            foreach($response['expensed_items'] as $item) {
-                MovementCategoryAssociation::updateOrCreate(
-                    ['movement_id' => $item['id']],
-                    ['category' => $item['category']],
-                );
-            }
+            dispatch(new CategorizeMovementsChunk($this->user, $movements));
         });
 
 
