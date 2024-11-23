@@ -15,7 +15,7 @@ class CategorizeRequest(BaseModel):
 
 class ExpenseCategory(str, Enum):
     FOOD = "food"
-    TRANSPORT = "transport" 
+    TRANSPORT = "transport"
     HOUSING = "housing"
     UTILITIES = "utilities"
     ENTERTAINMENT = "entertainment"
@@ -31,6 +31,7 @@ class ExpenseItem(BaseModel):
     Represents an individual expense/transfer entry
     """
     # description: str = Field(description="Description of the expense")
+    id: str = Field(description="Unique identifier for the expense")
     amount: float = Field(description="Amount spent in Chilean pesos",gt=0)
     title: str = Field(description="Title of the item")
     category: ExpenseCategory = Field(description="Category of the expense")

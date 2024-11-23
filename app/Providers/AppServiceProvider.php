@@ -29,5 +29,10 @@ class AppServiceProvider extends ServiceProvider
                 config('services.fintoc.secret_key')
             )->baseUrl('https://api.fintoc.com/v1/');
         });
+
+        Http::macro('llmApi', function () {
+//            return Http::baseUrl('https://api.taclarito.cl/api/v1/');
+            return Http::baseUrl('http://localhost:8000/api/v1/');
+        });
     }
 }

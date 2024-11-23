@@ -1,9 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
-import FileUpload from '../Components/FileUpload';
-import { ChartsSection } from '../Components/ChartsSection';
 import { IconFintoc, IconGoogle } from '@/Components/Icons';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, router } from '@inertiajs/react';
+import React, { useEffect, useState } from 'react';
+import { ChartsSection } from '../Components/ChartsSection';
+import FileUpload from '../Components/FileUpload';
+import axios from "axios";
+
+async function getMovements() {
+    const response = await axios.get(route('movements.get'));
+    console.log(response);
+}
 
 export default function Dashboard() {
     const [uploadComplete, setUploadComplete] = useState<boolean>(false);
@@ -12,10 +18,10 @@ export default function Dashboard() {
     const [currentMessage, setCurrentMessage] = useState(0);
 
     const messages = [
-        "Contando las piscolas... 🥃",
-        "¡Mucho pádel partner 🎾!",
-        "Era necesario lo de MercadoLibre 📦?",
-        "Cómo que 9 suscripciones 😱!?"
+        'Contando las piscolas... 🥃',
+        '¡Mucho pádel partner 🎾!',
+        'Era necesario lo de MercadoLibre 📦?',
+        'Cómo que 9 suscripciones 😱!?',
     ];
 
     useEffect(() => {
@@ -58,19 +64,22 @@ export default function Dashboard() {
         <AuthenticatedLayout>
             <Head title="Dashboard" />
 
-
-            <div className="py-12 px-6 flex justify-center items-center min-h-screen bg-gray-100 dark:bg-gray-900">
-
-                <div className="w-full max-w-4xl relative">
+            <div className="flex min-h-screen items-center justify-center bg-gray-100 px-6 py-12 dark:bg-gray-900">
+                <div className="relative w-full max-w-4xl">
                     {/* Loading Animation */}
                     {isLoading && (
                         <div
-                            className={`flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 z-10 transition-opacity duration-500 ${
-                                isLoading ? 'opacity-100 visible' : 'opacity-0 invisible'
+                            className={`z-10 flex flex-col items-center justify-center bg-gray-100 transition-opacity duration-500 dark:bg-gray-900 ${
+                                isLoading
+                                    ? 'visible opacity-100'
+                                    : 'invisible opacity-0'
                             }`}
                         >
-                            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                            <p className="mt-4 text-gray-700 text-xl dark:text-gray-300"> {messages[currentMessage]}</p>
+                            <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+                            <p className="mt-4 text-xl text-gray-700 dark:text-gray-300">
+                                {' '}
+                                {messages[currentMessage]}
+                            </p>
                         </div>
                     )}
 
@@ -87,36 +96,46 @@ export default function Dashboard() {
                     {/* Initial Content */}
                     {!uploadComplete && !isLoading && (
                         <>
-                       
-                        <div className="p-8 bg-white shadow-lg rounded-lg dark:bg-gray-800">
-                            <div className="text-center mb-8">
-                                <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-4">¿Tas clarito? 🤑</h1>
-                                <p className="text-lg text-gray-600 dark:text-gray-400">
-                                    ¡Sube tu rendición de gastos y accede a tus estadísticas!
-                                </p>
-                            </div>
-
-                            <div className="mb-4">
-                                <FileUpload onUploadComplete={handleUploadComplete} />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <button
-                                className="w-full py-4 bg-indigo-900 text-white font-semibold rounded-lg hover:bg-indigo-800 focus:outline-none flex items-center justify-center"
-                                onClick={() => console.log('Fintoc Login Clicked')}
-                            >
-                                <IconFintoc />
-                            </button>
-
-                            <button
-                                className="w-full py-4 bg-indigo-900 text-white font-semibold rounded-lg hover:bg-indigo-800 focus:outline-none flex items-center justify-center"
-                                onClick={() => console.log('Fintoc Login Clicked')}
-                            >
-                                <IconGoogle />
+                            <div className="my-2 flex">
+                            <button onClick={getMovements} className="ml-auto rounded bg-gray-600 px-10 py-2 text-white">
+                                Obtener movimientos
                             </button>
                             </div>
+                            <div className="rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800">
+                                <div className="mb-8 text-center">
+                                    <h1 className="mb-4 text-4xl font-bold text-gray-800 dark:text-gray-100">
+                                        ¿Tas clarito? 🤑
+                                    </h1>
+                                    <p className="text-lg text-gray-600 dark:text-gray-400">
+                                        ¡Sube tu rendición de gastos y accede a
+                                        tus estadísticas!
+                                    </p>
+                                </div>
 
-                        </div>
+                                <div className="mb-4">
+                                    <FileUpload
+                                        onUploadComplete={handleUploadComplete}
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <button
+                                        className="flex w-full items-center justify-center rounded-lg bg-indigo-900 py-4 font-semibold text-white hover:bg-indigo-800 focus:outline-none"
+                                        onClick={() => router.visit('add-bank')}
+                                    >
+                                        <IconFintoc />
+                                    </button>
+
+                                    <button
+                                        className="flex w-full items-center justify-center rounded-lg bg-indigo-900 py-4 font-semibold text-white hover:bg-indigo-800 focus:outline-none"
+                                        onClick={() =>
+                                            console.log('Fintoc Login Clicked')
+                                        }
+                                    >
+                                        <IconGoogle />
+                                    </button>
+                                </div>
+                            </div>
                         </>
                     )}
                 </div>
@@ -124,6 +143,3 @@ export default function Dashboard() {
         </AuthenticatedLayout>
     );
 }
-
-
-

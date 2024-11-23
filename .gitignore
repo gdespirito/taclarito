@@ -22,3 +22,5 @@ yarn-error.log
 /.vscode
 /.zed
 /.vite
+/.venv
+__pycache__

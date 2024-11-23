@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\AddBankController;
+use App\Http\Controllers\GetFintocMovementsController;
 use App\Http\Controllers\ListBanksController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SaveBanksController;
+use App\Models\User;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -23,10 +25,15 @@ Route::get('/dashboard', function () {
 Route::get('/add-bank', AddBankController::class);
 Route::post('/banks', SaveBanksController::class)->name('banks.store');
 Route::get('/banks', ListBanksController::class)->name('banks.index');
+Route::get('/movements', GetFintocMovementsController::class)->name('movements.get');
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+Route::get('test', function() {
+    dispatch(new \App\Jobs\CategorizeMovements(User::find(1)));
 });
 
 require __DIR__.'/auth.php';
