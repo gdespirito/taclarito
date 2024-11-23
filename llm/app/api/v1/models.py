@@ -52,6 +52,12 @@ class ExpensedItems(BaseModel):
         description="List of all individual expense items"
     )
 
+class Roast(BaseModel):
+    """
+    Represents a roast of someone's expense habits
+    """
+    roast: str = Field(description="Roast of the user's expense habits")
+
 
 class EmbeddingRequest(BaseModel):
     texts: List[str]

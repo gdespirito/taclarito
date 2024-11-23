@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
-from ..models import ChatRequest, CategorizeRequest, ExpensedItems, EmbeddingRequest, EmbeddingResponse
+from ..models import ChatRequest, CategorizeRequest, ExpensedItems, EmbeddingRequest, EmbeddingResponse, Roast
 from typing import List
 from ..utils import process_uploaded_files, generate_text_embeddings
 from dotenv import load_dotenv
@@ -115,6 +115,19 @@ async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
 
     return results
 
+@router.post("/roast", response_model=Roast)
+async def roast_endpoint(request: CategorizeRequest):
+    client = instructor.from_anthropic(AsyncAnthropicBedrock())
+    
+    resp = await client.messages.create(
+        model=model_id,
+        max_tokens=2048,
+        messages=[{"role": "system", "content": "Roast these spending habits like you're a stand-up comedian on fire. Be brutally honest, sharp, and hilarious, but keep it fun and lighthearted. Respond in spanish."},
+                  {"role": "user", "content":  "Here's the spending breakdown:\n "+json.dumps(request.data)}],
+        response_model=Roast,
+    )
+    
+    return resp.model_dump()
 
 @router.post("/embedding", response_model=EmbeddingResponse)
 async def create_embedding(request: EmbeddingRequest):
