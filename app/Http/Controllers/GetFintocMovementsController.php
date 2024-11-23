@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\FintocBankLink;
 use App\Models\Movement;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -32,5 +33,7 @@ class GetFintocMovementsController extends Controller
                 ]);
             }
         }
+
+        dispatch(new \App\Jobs\CategorizeMovements($request->user()));
     }
 }
