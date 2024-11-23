@@ -8,6 +8,8 @@ import instructor
 import json
 from anthropic import AsyncAnthropicBedrock
 from openai import AsyncOpenAI
+import asyncio
+
 load_dotenv()
 
 router = APIRouter()
@@ -67,15 +69,16 @@ async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
 
     bedrock_client = instructor.from_anthropic(AsyncAnthropicBedrock())
     openai_client = instructor.from_openai(AsyncOpenAI())
-    
-    for file_data in processed_files:
+
+    async def process_single_file(file_data):
         try:
             if file_data['type'] == 'text':
                 # Usar la función categorize para documentos de texto
                 resp = await bedrock_client.messages.create(
                     model=model_id,
                     max_tokens=4096,
-                    messages=[{"role": "user", "content": file_data['content']}],
+                    messages=[{"role": "system", "content": "Categorize the provided transactions and identify the individual items or transfers. For transactions from MercadoLibre, Shein, or AliExpress, assign them to their specific categories (e.g., 'mercadoLibre', 'shein', 'aliexpress') instead of using the general 'shopping' category."},
+                              {"role": "user", "content": file_data['content']}],
                     response_model=ExpensedItems,
                 )
             else:
@@ -89,7 +92,7 @@ async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
                             },
                             {
                                 "type": "text",
-                                "text": "Analyze the provided transactions and identify each of the expensed items or transfers."
+                                "text": "Categorize the provided transactions and identify the individual items or transfers. For transactions from MercadoLibre, Shein, or AliExpress, assign them to their specific categories (e.g., 'mercadoLibre', 'shein', 'aliexpress') instead of using the general 'shopping' category."
                             }
                         ],
                     }
@@ -99,13 +102,17 @@ async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
                     messages=messages,
                     response_model=ExpensedItems,
                 )
-            
-            results.expensed_items.extend(resp.expensed_items)
-            
+            return resp.expensed_items
         except Exception as e:
             print(e)
             raise HTTPException(status_code=500, detail=f"Error categorizando el documento: {e}")
+
+    responses = await asyncio.gather(*[process_single_file(file_data) for file_data in processed_files])
     
+    # Combinar todos los resultados
+    for response in responses:
+        results.expensed_items.extend(response)
+
     return results
 
 
