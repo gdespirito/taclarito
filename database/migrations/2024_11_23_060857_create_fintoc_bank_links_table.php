@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('fintoc_bank_links', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained();
             $table->string('fintoc_id');
             $table->string('holder_id');
             $table->string('username');
