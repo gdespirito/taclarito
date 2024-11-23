@@ -10,4 +10,9 @@ export default defineConfig({
         }),
         react(),
     ],
+    esbuild: {
+        supported: {
+            'top-level-await': true
+        },
+    },
 });
