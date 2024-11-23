@@ -4,6 +4,7 @@ import { Head, router } from "@inertiajs/react";
 import { useEffect } from "react";
 import axios from "axios";
 
+
 const Fintoc = await getFintoc();
 
 
