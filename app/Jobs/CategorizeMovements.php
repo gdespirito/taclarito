@@ -29,7 +29,7 @@ class CategorizeMovements implements ShouldQueue
     public function handle(): void
     {
         Movement::where('user_id', $this->user->id)->chunk(static::CHUNK_SIZE, function ($movements) {
-            dispatch(new CategorizeMovementsChunk($this->user, $movements));
+            dispatch(new CategorizeMovementsChunk($this->user, $movements->toArray()));
         });
 
 
