@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Bar, Pie } from 'react-chartjs-2';
 import { AIQuestion } from './AIQuestion';
+import { transactionData } from '../data.js';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -34,13 +35,41 @@ export const ChartsSection = ({
     inputValue: string;
     onSend: () => void;
 }) => {
+    const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+    // Determine unique categories from transaction types
+    const categories = Array.from(
+        new Set(transactionData.map((t) => t.type))
+    );
+
+    const filteredData =
+        selectedCategory === 'all'
+            ? transactionData
+            : transactionData.filter((t) => t.type === selectedCategory);
+
+    const totalCredits = filteredData
+        .filter((t) => t.amount > 0)
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    const totalDebits = filteredData
+        .filter((t) => t.amount < 0)
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+    const transactionTypeCounts = filteredData.reduce(
+        (acc, t) => {
+            acc[t.type] = (acc[t.type] || 0) + 1;
+            return acc;
+        },
+        {} as Record<string, number>
+    );
+
     const barData = {
-        labels: ['January', 'February', 'March', 'April', 'May'],
+        labels: ['Credits', 'Debits'],
         datasets: [
             {
-                label: 'Sales',
-                data: [30, 45, 60, 75, 90],
-                backgroundColor: 'rgba(79, 70, 229, 0.8)', // Tailwind indigo-600
+                label: 'Transaction Totals',
+                data: [totalCredits, totalDebits],
+                backgroundColor: ['rgba(79, 70, 229, 0.8)', 'rgba(220, 38, 38, 0.8)'],
             },
         ],
     };
@@ -57,7 +86,7 @@ export const ChartsSection = ({
             },
             title: {
                 display: true,
-                text: 'Monthly Sales',
+                text: `Credits vs. Debits (${selectedCategory})`,
                 color: '#FFFFFF',
             },
         },
@@ -82,15 +111,16 @@ export const ChartsSection = ({
     };
 
     const pieData = {
-        labels: ['Product A', 'Product B', 'Product C'],
+        labels: Object.keys(transactionTypeCounts),
         datasets: [
             {
-                label: 'Product Distribution',
-                data: [40, 35, 25],
+                label: 'Transaction Types',
+                data: Object.values(transactionTypeCounts),
                 backgroundColor: [
-                    'rgba(79, 70, 229, 0.8)', // Tailwind indigo-600
-                    'rgba(31, 41, 55, 0.8)', // Tailwind gray-800
-                    'rgba(107, 114, 128, 0.8)', // Tailwind gray-600
+                    'rgba(79, 70, 229, 0.8)',
+                    'rgba(31, 41, 55, 0.8)',
+                    'rgba(107, 114, 128, 0.8)',
+                    'rgba(220, 38, 38, 0.8)',
                 ],
                 borderColor: 'transparent',
             },
@@ -109,7 +139,7 @@ export const ChartsSection = ({
             },
             title: {
                 display: true,
-                text: 'Product Sales Distribution',
+                text: `Transaction Type Distribution (${selectedCategory})`,
                 color: '#FFFFFF',
             },
         },
@@ -125,6 +155,8 @@ export const ChartsSection = ({
                 Volver
             </button>
 
+            <h4 className='mb-3 size-2xl text-white text-center'>¡Este més has gastado $16.900 en Starbucks!</h4>
+
             {/* Input Field */}
             <AIQuestion
                 value={inputValue}
@@ -133,17 +165,44 @@ export const ChartsSection = ({
                 onSend={onSend}
             />
 
+            {/* Category Buttons */}
+            <div className="flex flex-wrap gap-2 mb-3">
+                <button
+                    className={`px-4 py-2 rounded-lg ${
+                        selectedCategory === 'all'
+                            ? 'bg-indigo-600 text-white'
+                            : 'bg-gray-300 text-gray-800 dark:bg-gray-600 dark:text-gray-200'
+                    }`}
+                    onClick={() => setSelectedCategory('all')}
+                >
+                    All
+                </button>
+                {categories.map((category) => (
+                    <button
+                        key={category}
+                        className={`px-4 py-2 rounded-lg ${
+                            selectedCategory === category
+                                ? 'bg-indigo-600 text-white'
+                                : 'bg-gray-300 text-gray-800 dark:bg-gray-600 dark:text-gray-200'
+                        }`}
+                        onClick={() => setSelectedCategory(category)}
+                    >
+                        {category}
+                    </button>
+                ))}
+            </div>
+
             {/* Charts */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Bar Chart */}
                 <div className="p-6 bg-gray-100 dark:bg-gray-700 rounded-lg shadow">
-                    <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Monthly Sales</h3>
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Credits vs. Debits</h3>
                     <Bar data={barData} options={barOptions} />
                 </div>
 
                 {/* Pie Chart */}
                 <div className="p-6 bg-gray-100 dark:bg-gray-700 rounded-lg shadow">
-                    <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Product Sales Distribution</h3>
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Transaction Type Distribution</h3>
                     <Pie data={pieData} options={pieOptions} />
                 </div>
             </div>

@@ -64,7 +64,7 @@ export default function FileUpload({ onUploadComplete }: FileUploadProps) {
         <span className="mb-4 text-2xl">
             📄
         </span>
-        <p className="text-gray-300 mb-2">¡Sube tu cartola!</p>
+        <p className="text-gray-300 mb-2">Subir archivo</p>
         <input
             id="fileInput"
             type="file"

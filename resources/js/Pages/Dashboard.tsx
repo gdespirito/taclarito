@@ -58,7 +58,9 @@ export default function Dashboard() {
         <AuthenticatedLayout>
             <Head title="Dashboard" />
 
+
             <div className="py-12 px-6 flex justify-center items-center min-h-screen bg-gray-100 dark:bg-gray-900">
+
                 <div className="w-full max-w-4xl relative">
                     {/* Loading Animation */}
                     {isLoading && (
@@ -84,11 +86,13 @@ export default function Dashboard() {
 
                     {/* Initial Content */}
                     {!uploadComplete && !isLoading && (
+                        <>
+                       
                         <div className="p-8 bg-white shadow-lg rounded-lg dark:bg-gray-800">
                             <div className="text-center mb-8">
                                 <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-4">¿Tas clarito? 🤑</h1>
                                 <p className="text-lg text-gray-600 dark:text-gray-400">
-                                    ¡Sube tu cartola y accede a todas tus estadísticas!
+                                    ¡Sube tu rendición de gastos y accede a tus estadísticas!
                                 </p>
                             </div>
 
@@ -113,6 +117,7 @@ export default function Dashboard() {
                             </div>
 
                         </div>
+                        </>
                     )}
                 </div>
             </div>
