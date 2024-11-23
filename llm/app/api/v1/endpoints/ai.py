@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
-from ..models import ChatRequest, CategorizeRequest, ExpensedItems, EmbeddingRequest, EmbeddingResponse, Roast
+from ..models import ChatRequest, CategorizeRequest, ExpensedItems, ExpensedItemsWrapped, EmbeddingRequest, EmbeddingResponse, Roast
 from typing import List
 from ..utils import process_uploaded_files, generate_text_embeddings
 from dotenv import load_dotenv
@@ -47,7 +47,7 @@ async def chat_stream(request: ChatRequest):
         media_type="text/event-stream"
     )
 
-@router.post("/categorize", response_model=ExpensedItems)
+@router.post("/categorize-wrapped", response_model=ExpensedItemsWrapped)
 async def categorize_endpoint(request: CategorizeRequest):
     client = instructor.from_anthropic(AsyncAnthropicBedrock())
     
@@ -55,6 +55,20 @@ async def categorize_endpoint(request: CategorizeRequest):
         model=model_id,
         max_tokens=1024,
         messages=[{"role": "system", "content": "Categorize the provided transactions and identify the individual items or transfers. For transactions from MercadoLibre, Shein, or AliExpress, assign them to their specific categories (e.g., 'mercadoLibre', 'shein', 'aliexpress') instead of using the general 'shopping' category."},
+                  {"role": "user", "content": json.dumps(request.data)}],
+        response_model=ExpensedItemsWrapped,
+    )
+    
+    return resp.model_dump()
+
+@router.post("/categorize", response_model=ExpensedItems)
+async def categorize_endpoint(request: CategorizeRequest):
+    client = instructor.from_anthropic(AsyncAnthropicBedrock())
+    
+    resp = await client.messages.create(
+        model=model_id,
+        max_tokens=4096,
+        messages=[{"role": "system", "content": "Categorize the provided transactions and identify the individual items or transfers."},
                   {"role": "user", "content": json.dumps(request.data)}],
         response_model=ExpensedItems,
     )
