@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'fintoc' => [
+        'secret_key' => env('FINTOC_SECRET'),
+    ]
+
 ];
