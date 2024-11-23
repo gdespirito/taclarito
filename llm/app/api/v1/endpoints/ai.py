@@ -52,7 +52,8 @@ async def categorize_endpoint(request: CategorizeRequest):
     resp = await client.messages.create(
         model=model_id,
         max_tokens=1024,
-        messages=[{"role": "user", "content": json.dumps(request.data)}],
+        messages=[{"role": "system", "content": "Categorize the provided transactions and identify the individual items or transfers. For transactions from MercadoLibre, Shein, or AliExpress, assign them to their specific categories (e.g., 'mercadoLibre', 'shein', 'aliexpress') instead of using the general 'shopping' category."},
+                  {"role": "user", "content": json.dumps(request.data)}],
         response_model=ExpensedItems,
     )
     

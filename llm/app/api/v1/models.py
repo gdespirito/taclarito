@@ -15,16 +15,22 @@ class CategorizeRequest(BaseModel):
 
 class ExpenseCategory(str, Enum):
     FOOD = "food"
-    TRANSPORT = "transport"
-    HOUSING = "housing"
     UTILITIES = "utilities"
     ENTERTAINMENT = "entertainment"
+    # SUPERMARKET = "supermarket"
     HEALTHCARE = "healthcare"
-    SHOPPING = "shopping"
     EDUCATION = "education"
     TRAVEL = "travel"
-    OTHER = "other"
+    STREAMING_SUBSCRIPTIONS = "streaming_subscriptions"
+    LIQUOR = "liquor"
+    SPORT = "sport"
+    DELIVERY = "delivery"
+    MERCADOLIBRE = "mercadolibre"
+    SHEIN = "shein"
+    ALIEXPRESS = "aliexpress"
     TRANSFER = "transfer"
+    SHOPPING = "shopping"
+    OTHER = "other"
 
 class ExpenseItem(BaseModel):
     """
