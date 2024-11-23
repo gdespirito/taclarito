@@ -11,21 +11,26 @@ function sendExchangeTokenToBackend(exchangeToken: string) {
     axios.post(route('banks.store'), {exchangeToken});
 }
 
-export default function AddBank({ widget_token }) {
+interface Props {
+    widget_token: string;
+}
 
-
+export default function AddBank({ widget_token }: Props) {
     useEffect(() => {
         const options = {
             publicKey: 'pk_live_5cNLzP6Yd9tq8woSjppJ5PHV6cDwRn9B',
             widgetToken: widget_token,
-            onSuccess: (linkIntent) => {
+            onSuccess: (linkIntent: { exchangeToken: string }) => {
                 const exchangeToken = linkIntent.exchangeToken;
                 sendExchangeTokenToBackend(exchangeToken);
-                router.visit(route('banks.index'))
-            }
+                router.visit(route('banks.index'));
+            },
         };
-        const widget = Fintoc.create(options);
-        widget.open();
+        if (Fintoc) {
+            const widget = Fintoc.create(options);
+            widget.open();
+        }
+
     }, []);
 
 
