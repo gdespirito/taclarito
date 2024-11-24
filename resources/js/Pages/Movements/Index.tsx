@@ -17,7 +17,7 @@ export default function SelectBankAccounts({ movements }: Props) {
                     </h1>
 
                     <div className="flex flex-col flex-wrap">
-                        {movements.map((movement) => (
+                        {movements.map((movement:any) => (
                             <div key={`movement-${movement.id}`} className="my-2 rounded bg-white p-3 shadow">
                                 <div className="flex items-center justify-center">
                                     <span>{movement.description}</span>
