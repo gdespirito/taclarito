@@ -34,6 +34,13 @@ export default function Authenticated({
                                 >
                                     Dashboard
                                 </NavLink>
+
+                                <NavLink
+                                href={route('movements.index')}
+                                active={route().current('movements.index')}
+                            >
+                                Movimientos
+                            </NavLink>
                             </div>
                         </div>
 
