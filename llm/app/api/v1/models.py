@@ -27,7 +27,7 @@ class CategorizeRequest(BaseModel):
     data: List[CategorizeRequestRow]
 
 class CategorizeResponse(BaseModel):
-    data: List[CategorizeResponseRow]
+    expensed_items: List[CategorizeResponseRow]
 
 
 class ExpenseCategoryWrapped(str, Enum):

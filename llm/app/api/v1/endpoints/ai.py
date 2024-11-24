@@ -81,7 +81,7 @@ async def categorize_wrapped_endpoint(request: CategorizeRequest):
                         date=request.data[i].date,
                       ) for i, (category) in enumerate(resp.categories)]
 
-    final_response = CategorizeResponse(data = response_rows)
+    final_response = CategorizeResponse(expensed_items = response_rows)
     
     serialized_data = final_response.dict(by_alias=True, exclude_none=True)
     json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, (datetime, date)) else x)
@@ -117,7 +117,7 @@ async def categorize_endpoint(request: CategorizeRequest):
                     date=request.data[i].date,
                     ) for i, (category) in enumerate(resp.categories)]
     
-    final_response = CategorizeResponse(data = response_rows)
+    final_response = CategorizeResponse(expensed_items = response_rows)
 
     serialized_data = resp.dict(by_alias=True, exclude_none=True)
     json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, (datetime, date)) else x)
@@ -249,8 +249,6 @@ async def roast_endpoint(request: RoastRequest):
             f"{json.dumps(category_expenses)}\n"
             f"Sum of expenses: ${int(sum(category_expenses.values()))} pesos\n\n"
         )
-
-        print(message_content)
 
         resp = await client.messages.create(
             model=model_id,
