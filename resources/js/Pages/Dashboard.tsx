@@ -104,7 +104,7 @@ export default function Dashboard() {
                             <div className="mb-10 rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800 dark:text-white">
                                 <div className="mb-8 text-center">
                                     <h1 className="mb-4 text-4xl font-bold text-gray-800 dark:text-gray-100">
-                                        ¿Tas clarito? 🤑
+                                        ¿Ta clarito? 🤑
                                     </h1>
                                     <p className="text-lg text-gray-600 dark:text-gray-400">
                                         Apuesto que no sabes en que gastas la plata. <br/>
