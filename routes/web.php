@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\AddBankController;
 use App\Http\Controllers\AddFilesController;
-use App\Http\Controllers\GetFintocMovementsController;
+use App\Http\Controllers\GetMovementsController;
 use App\Http\Controllers\ListBanksController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StoreBanksController;
@@ -34,7 +34,7 @@ Route::post('banks/{fintocLinkId}/select-accounts', StoreSelectedAccounts::class
 Route::get('/banks', ListBanksController::class)->name('banks.index');
 Route::get('/add-files', AddFilesController::class)->name('add-files');
 Route::get('/wrapped', WrappedController::class)->name('wrapped');
-Route::get('/movements', GetFintocMovementsController::class)->name('movements.get');
+Route::get('/movements', GetMovementsController::class)->name('movements.index');
 Route::post('/files', StoreFileController::class)->name('files.store');
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

@@ -28,7 +28,7 @@ class CategorizeWrappedMovements implements ShouldQueue
      */
     public function handle(): void
     {
-        Movement::where('user_id', $this->user->id)->whereDoesntHave('category')->chunk(static::CHUNK_SIZE, function ($movements) {
+        Movement::where('user_id', $this->user->id)->whereDoesntHave('wrappedCategory')->chunk(static::CHUNK_SIZE, function ($movements) {
             dispatch(new WrappedCategorizeMovementsChunk($this->user, $movements->toArray()));
         });
 
