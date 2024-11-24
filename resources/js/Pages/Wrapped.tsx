@@ -27,12 +27,14 @@ export default function Wrapped(props: any) {
   const [total, setTotal] = useState(0);
   const [roast, setRoast] = useState<Record<string, string>>({}); // Roast messages
 
-  const messages = [
+  // Initialize messages as a state variable
+  const initialMessages = [
     'Contando las piscolas... 🥃',
     '¡Mucho pádel partner 🎾!',
     'Era necesario lo de MercadoLibre 📦?',
     'Cómo tantas suscripciones 😱!?',
   ];
+  const [messages, setMessages] = useState<string[]>([]);
 
   const totalSlides = cards.length + 1; // Summary + cards
 
@@ -91,8 +93,30 @@ export default function Wrapped(props: any) {
     };
   }, [currentIndex, totalSlides, isLoading]); // Added isLoading to dependencies
 
+  // Shuffle messages and set up message cycling
+  useEffect(() => {
+    // Shuffle messages
+    const shuffledMessages = [...initialMessages].sort(() => Math.random() - 0.5);
+    setMessages(shuffledMessages);
+  }, []);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (isLoading) {
+      interval = setInterval(() => {
+        setCurrentMessage((prev) => (prev + 1) % messages.length);
+      }, 1500); // Change message every 1.5 seconds
+    }
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isLoading, messages.length]);
+
   useEffect(() => {
     const fetchData = async () => {
+      const startTime = Date.now(); // Record start time
       try {
         // Fetch roast data
         const roastResponse = await axios.get('/roast');
@@ -128,13 +152,21 @@ export default function Wrapped(props: any) {
 
         setCards(fetchedCards);
         setTotal(totalAmount);
-        setIsLoading(false); // Data is fully loaded
       } catch (error) {
         console.error('Error fetching data:', error);
         setRoast({
           default: '¡No pudimos traer tu roast, pero aquí está tu resumen de gastos!',
         });
-        setIsLoading(false); // Even if there's an error, stop loading
+      } finally {
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = 6000 - elapsedTime; // Calculate remaining time to reach 6 seconds
+        if (remainingTime > 0) {
+          setTimeout(() => {
+            setIsLoading(false);
+          }, remainingTime);
+        } else {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -197,7 +229,7 @@ export default function Wrapped(props: any) {
                           {'quantity' in card && card.quantity}{' '}
                           {'quantity' in card && (card.quantity === 1 ? 'compra' : 'compras')}
                         </p>
-                        <p className="mt-4 text-2xl italic font-light dark:text-gray-200">
+                        <p className="mt-4 text-2xl italic font-light dark:text-gray-200 text-center">
                           {'rant' in card && card.rant}
                         </p>
                       </div>
