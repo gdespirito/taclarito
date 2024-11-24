@@ -63,7 +63,7 @@ export default function Wrapped(props: any) {
 
   useEffect(() => {
 
-      window.Echo.private(`App.Models.User.${props.auth.user.id}`)
+      (window as any).Echo.private(`App.Models.User.${props.auth.user.id}`)
           .listen('FinishedFintocImport', (e: any) => {
               toast("Ya está lista la carga de movimientos de tu banco");
           })
