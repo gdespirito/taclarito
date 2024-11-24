@@ -25,34 +25,34 @@ model_id = "us.anthropic.claude-3-5-haiku-20241022-v1:0"
 # model_id = "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
 
 
-@router.post("/chat")
-async def chat_stream(request: ChatRequest):
-    client = AsyncAnthropicBedrock()
+# @router.post("/chat")
+# async def chat_stream(request: ChatRequest):
+#     client = AsyncAnthropicBedrock()
 
-    async def generate():
-        try:
-            stream = await client.messages.create(
-                messages=request.model_dump()['messages'],
-                max_tokens=4096,
-                model=model_id,
-                stream=True,
-            )
+#     async def generate():
+#         try:
+#             stream = await client.messages.create(
+#                 messages=request.model_dump()['messages'],
+#                 max_tokens=4096,
+#                 model=model_id,
+#                 stream=True,
+#             )
 
-            async for event in stream:
-                if hasattr(event, 'type') and event.type == 'content_block_delta':
-                    yield f"data: {event.delta.text}\n\n"
-            yield f"data: {json.dumps({'done': True})}\n\n"
+#             async for event in stream:
+#                 if hasattr(event, 'type') and event.type == 'content_block_delta':
+#                     yield f"data: {event.delta.text}\n\n"
+#             yield f"data: {json.dumps({'done': True})}\n\n"
 
-        except Exception as e:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Internal server error: {str(e)}"
-            )
+#         except Exception as e:
+#             raise HTTPException(
+#                 status_code=500,
+#                 detail=f"Internal server error: {str(e)}"
+#             )
 
-    return StreamingResponse(
-        generate(),
-        media_type="text/event-stream"
-    )
+#     return StreamingResponse(
+#         generate(),
+#         media_type="text/event-stream"
+#     )
 
 @router.post("/categorize-wrapped", response_model=CategorizeResponse)
 async def categorize_wrapped_endpoint(request: CategorizeRequest):
@@ -63,15 +63,28 @@ async def categorize_wrapped_endpoint(request: CategorizeRequest):
         cached_response = CategorizeResponse(**cached_data)
         return cached_response
     
-    client = instructor.from_anthropic(AsyncAnthropicBedrock())
+    bedrock_client = instructor.from_anthropic(AsyncAnthropicBedrock())
+    openai_client = instructor.from_openai(AsyncOpenAI())
+
+    messages=[{"role": "system", "content": "Categorize the provided transactions and identify the individual items or transfers. For transactions from MercadoLibre, Shein, or AliExpress, assign them to their specific categories (e.g., 'mercadoLibre', 'shein', 'aliexpress') instead of using the general 'shopping' category."},
+              {"role": "user", "content": request.model_dump_json()}]
     
-    resp = await client.messages.create(
-        model=model_id,
-        max_tokens=4096,
-        messages=[{"role": "system", "content": "Categorize the provided transactions and identify the individual items or transfers. For transactions from MercadoLibre, Shein, or AliExpress, assign them to their specific categories (e.g., 'mercadoLibre', 'shein', 'aliexpress') instead of using the general 'shopping' category."},
-                  {"role": "user", "content": request.model_dump_json()}],
-        response_model=ItemCategoriesWrapped,
-    )
+    resp = None
+    
+    try:
+        resp = await bedrock_client.messages.create(
+            model=model_id,
+            max_tokens=4096,
+            messages=messages,
+            response_model=ItemCategoriesWrapped,
+        )
+    except Exception as e:
+        logger.error("Error using Bedrock client: " + str(e) + ". Trying OpenAI client...")
+        resp = await openai_client.chat.completions.create(
+            model='gpt-4o',
+            messages=messages,
+            response_model=ItemCategoriesWrapped,
+        )
 
     response_rows = [ CategorizeResponseRow(
                         id=request.data[i].id,
@@ -99,15 +112,27 @@ async def categorize_endpoint(request: CategorizeRequest):
         cached_response = CategorizeResponse(**cached_data)
         return cached_response
     
-    client = instructor.from_anthropic(AsyncAnthropicBedrock())
+    bedrock_client = instructor.from_anthropic(AsyncAnthropicBedrock())
+    openai_client = instructor.from_openai(AsyncOpenAI())
     
-    resp = await client.messages.create(
-        model=model_id,
-        max_tokens=4096,
-        messages=[{"role": "system", "content": "Categorize the provided transactions and identify the individual items or transfers."},
-                  {"role": "user", "content": request.model_dump_json()}],
-        response_model=ItemCategories,
-    )
+    resp = None
+
+    messages = [{"role": "system", "content": "Categorize the provided transactions and identify the individual items or transfers."},
+                    {"role": "user", "content": request.model_dump_json()}]
+    try:
+        resp = await bedrock_client.messages.create(
+            model=model_id,
+            max_tokens=4096,
+            messages=messages,
+            response_model=ItemCategories,
+        )
+    except Exception as e:
+        logger.error("Error using Bedrock client: " + str(e) + ". Trying OpenAI client...")
+        resp = await openai_client.chat.completions.create(
+            model='gpt-4o',
+            messages=messages,
+            response_model=ItemCategories,
+        )
 
     response_rows = [ CategorizeResponseRow(
                     id=request.data[i].id,
@@ -133,7 +158,6 @@ async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
     
     all_cached_results = []
     
-    
     bedrock_client = instructor.from_anthropic(AsyncAnthropicBedrock())
     openai_client = instructor.from_openai(AsyncOpenAI())
 
@@ -147,15 +171,24 @@ async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
                 cached_data = json.loads(cached_results)
                 return ExpensedItemsWrapped(**cached_data).expensed_items
             
+            resp = None
             if file_data['type'] == 'text':
-                # Usar la función categorize para documentos de texto
-                resp = await bedrock_client.messages.create(
-                    model=model_id,
-                    max_tokens=4096,
-                    messages=[{"role": "system", "content": "Categorize the provided transactions and identify the individual items or transfers. For transactions from MercadoLibre, Shein, or AliExpress, assign them to their specific categories (e.g., 'mercadoLibre', 'shein', 'aliexpress') instead of using the general 'shopping' category."},
-                              {"role": "user", "content": file_data['content']}],
-                    response_model=ExpensedItemsWrapped,
-                )
+                messages = [{"role": "system", "content": "Categorize the provided transactions and identify the individual items or transfers. For transactions from MercadoLibre, Shein, or AliExpress, assign them to their specific categories (e.g., 'mercadoLibre', 'shein', 'aliexpress') instead of using the general 'shopping' category."},
+                            {"role": "user", "content": file_data['content']}]
+                try:
+                    resp = await bedrock_client.messages.create(
+                        model=model_id,
+                        max_tokens=4096,
+                        messages=messages,
+                        response_model=ExpensedItemsWrapped,
+                    )
+                except Exception as e:
+                    logger.error("Error using Bedrock client: " + str(e) + ". Trying OpenAI client...")
+                    resp = await openai_client.chat.completions.create(
+                        model='gpt-4o',
+                        messages=messages,
+                        response_model=ExpensedItemsWrapped,
+                    )
             else:
                 messages = [
                     {
@@ -214,8 +247,6 @@ async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
 
 @router.post("/roast", response_model=RoastResponse)
 async def roast_endpoint(request: RoastRequest):
-    client = instructor.from_anthropic(AsyncAnthropicBedrock())
-
     unique_categories = set()
     for item in request.expensed_items:
         if (item.category):
@@ -224,6 +255,9 @@ async def roast_endpoint(request: RoastRequest):
     min_date = min(item.date for item in request.expensed_items)
     max_date = max(item.date for item in request.expensed_items)
     date_range = (max_date - min_date).days + 1
+
+    bedrock_client = instructor.from_anthropic(AsyncAnthropicBedrock())
+    openai_client = instructor.from_openai(AsyncOpenAI())
 
     async def process_category(category: str):
         filtered_data = [
@@ -251,20 +285,33 @@ async def roast_endpoint(request: RoastRequest):
             f"Sum of expenses: ${int(sum(category_expenses.values()))} pesos\n\n"
         )
 
-        resp = await client.messages.create(
-            model=model_id,
-            max_tokens=2048,
-            messages=[{"role": "system", "content": f"""Analyze these spending habits in the {category} category over a period of {date_range} days and respond in Spanish with a very single witty phrase of no more 30 words. If the total expenses in the category are disproportionately high, deliver a sharp and humorous roast like a stand-up comedian, keeping it fun and lighthearted. If the spending is reasonable or modest, provide a light observation or a constructive tip instead. The currency is in Chilean pesos. Avoid starting sentences with exclamations or using phrases like 'Madre Mía,' 'Compadre,' 'Caramba,' or similar interjections."""},
-                    {"role": "user", "content":  message_content}],
-            response_model=Roast,
-        )
+        messages=[{"role": "system", "content": f"""Analyze these spending habits in the {category} category over a period of {date_range} days and respond in Spanish with a very single witty phrase of no more 30 words. If the total expenses in the category are disproportionately high, deliver a sharp, humorous and brutally honest roast like a stand-up comedian on fire, but keeping it fun and lighthearted. If the spending is reasonable or modest, provide a light observation or a constructive tip instead. The currency is in Chilean pesos. Avoid starting sentences with exclamations or using phrases like 'Madre Mía,' 'Compadre,' 'Caramba,' or similar interjections."""},
+                    {"role": "user", "content":  message_content}]
+
+        resp = None
+
+        try:
+            resp = await bedrock_client.messages.create(
+                model=model_id,
+                max_tokens=4096,
+                messages=messages,
+                response_model=Roast,
+            )
+        except Exception as e:
+            logger.error("Error using Bedrock client: " + str(e) + ". Trying OpenAI client...")
+            resp = await openai_client.chat.completions.create(
+                model='gpt-4o',
+                messages=messages,
+                response_model=Roast,
+            )
+
     
         return (category, resp.comment)
     
     responses = await asyncio.gather(*[process_category(category) for category in unique_categories])
     return {"roasts": {c: r for c, r in responses }}
 
-@router.post("/embedding", response_model=EmbeddingResponse)
-async def create_embedding(request: EmbeddingRequest):
-    embeddings = generate_text_embeddings(request.texts)
-    return embeddings
+# @router.post("/embedding", response_model=EmbeddingResponse)
+# async def create_embedding(request: EmbeddingRequest):
+#     embeddings = generate_text_embeddings(request.texts)
+#     return embeddings
