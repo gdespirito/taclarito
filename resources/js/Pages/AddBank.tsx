@@ -9,7 +9,7 @@ function sendExchangeTokenToBackend(exchangeToken: string) {
     return axios.post(route('banks.store'), { exchangeToken });
 }
 
-function skip(e) {
+function skip(e: any) {
     e.preventDefault();
     router.visit(route('add-files'));
 }

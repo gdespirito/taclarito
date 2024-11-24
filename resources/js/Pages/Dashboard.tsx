@@ -60,7 +60,7 @@ export default function Dashboard() {
         setInputValue(''); // Clear input after sending
     };
 
-    function start(e) {
+    function start(e: any) {
         router.visit('add-bank');
         e.preventDefault();
     }

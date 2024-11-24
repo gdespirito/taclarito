@@ -3,13 +3,13 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 
-function skip(e) {
+function skip(e: any) {
     e.preventDefault();
     router.visit(route('wrapped'));
 }
 
 export default function AddFiles() {
-    const [loadedFiles, setLoadedFiles] = useState<bool>(false);
+    const [loadedFiles, setLoadedFiles] = useState<boolean>(false);
     const handleUploadComplete = () => {
         setLoadedFiles(true);
     };

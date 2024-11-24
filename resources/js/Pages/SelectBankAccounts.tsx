@@ -9,10 +9,10 @@ interface Props {
 }
 
 export default function SelectBankAccounts({ fintoc_accounts, fintoc_link_id }: Props) {
-    async function save(e) {
+    async function save(e: any) {
         const selectedAccounts = Array.from(
             document.querySelectorAll('input[name="account[]"]:checked'),
-        ).map((checkbox) => checkbox.value);
+        ).map((checkbox: any) => checkbox.value);
 
         e.preventDefault();
 
@@ -34,7 +34,7 @@ export default function SelectBankAccounts({ fintoc_accounts, fintoc_link_id }: 
         selectAll();
     }, [])
 
-    const listItems = fintoc_accounts.map((account) => (
+    const listItems = fintoc_accounts.map((account: any) => (
         <div
             className="m-2 flex items-center rounded-lg bg-gray-900 p-2 text-left shadow"
             key={account.id}

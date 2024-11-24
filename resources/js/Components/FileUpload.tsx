@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from "axios";
+import axios, { AxiosProgressEvent } from "axios";
 import { router } from "@inertiajs/react";
 
 interface FileUploadProps {
@@ -47,7 +47,10 @@ export default function FileUpload({ onUploadComplete }: FileUploadProps) {
 
             axios
                 .post(route('files.store'), formData, {
-                    onUploadProgress: (event) => {
+                    onUploadProgress: (event: AxiosProgressEvent) => {
+                        if (event.total === undefined) {
+                            return;
+                        }
                         const percentage = Math.round(
                             (event.loaded * 100) / event.total,
                         );
