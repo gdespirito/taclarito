@@ -70,7 +70,7 @@ export default function Wrapped(props: any) {
                 setFintocReady(true);
                 if (fintocReady && filesReady) {
                     setIsLoading(false);
-                    window.reload();
+                    window.location.reload();
                 }
             })
             .listen('FinishedFileProcess', (e: any) => {
@@ -78,7 +78,7 @@ export default function Wrapped(props: any) {
                 setFilesReady(true);
                 if (fintocReady && filesReady) {
                     setIsLoading(false);
-                    window.reload();
+                    window.location.reload();
                 }
             });
 
