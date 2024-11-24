@@ -15,18 +15,15 @@ class GetRoastController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $this->validate($request, [
-            'category' => 'required'
-        ]);
 
         $movements = Movement::where('user_id', $request->user()->id)->with('wrappedCategory')->get();
         return Http::llmApi()->post('roast', [
             'expensed_items' => $movements->map(function ($item) {
                 return [
                     'description' => $item->description,
-                    'category' => $item->wrappedCategory->category,
+                    'category' => $item->wrappedCategory->category ?? null,
                     'amount' => $item->amount,
-                    'date' => $item->date,
+                    'date' => $item->date->format('Y-m-d'),
                 ];
             }),
         ])->json();

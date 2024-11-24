@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
 from ..models import (
     ChatRequest, CategorizeRequest, ExpensedItemsWrapped,
-    EmbeddingRequest, EmbeddingResponse, Roast, RoastRequest,
+    EmbeddingRequest, EmbeddingResponse, Roast, RoastRequest, RoastResponse,
     ItemCategories, ItemCategoriesWrapped,
     CategorizeResponse, CategorizeResponseRow) 
 from typing import List
@@ -81,7 +81,7 @@ async def categorize_wrapped_endpoint(request: CategorizeRequest):
                         date=request.data[i].date,
                       ) for i, (category) in enumerate(resp.categories)]
 
-    final_response = CategorizeResponse(data = response_rows)
+    final_response = CategorizeResponse(expensed_items = response_rows)
     
     serialized_data = final_response.dict(by_alias=True, exclude_none=True)
     json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, (datetime, date)) else x)
@@ -117,7 +117,7 @@ async def categorize_endpoint(request: CategorizeRequest):
                     date=request.data[i].date,
                     ) for i, (category) in enumerate(resp.categories)]
     
-    final_response = CategorizeResponse(data = response_rows)
+    final_response = CategorizeResponse(expensed_items = response_rows)
 
     serialized_data = resp.dict(by_alias=True, exclude_none=True)
     json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, (datetime, date)) else x)
@@ -191,54 +191,78 @@ async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
 
     responses = await asyncio.gather(*[process_single_file(file_data) for file_data in processed_files])
     
-    # Combinar todos los resultados
     for response in responses:
         all_cached_results.extend(response)
 
-    results.expensed_items = all_cached_results
+    sorted_results = sorted(all_cached_results, key=lambda x: x.date)
+    filtered_results = []
+    for i in range(len(sorted_results)):
+        if i == 0:
+            filtered_results.append(sorted_results[i])
+            continue
+            
+        current_date = sorted_results[i].date
+        previous_date = filtered_results[-1].date
+        
+        date_diff = (current_date - previous_date).days
+        
+        if date_diff <= 30:
+            filtered_results.append(sorted_results[i])
+
+    results.expensed_items = filtered_results
     return results
 
-@router.post("/roast", response_model=Roast)
+@router.post("/roast", response_model=RoastResponse)
 async def roast_endpoint(request: RoastRequest):
     client = instructor.from_anthropic(AsyncAnthropicBedrock())
 
-    filtered_data = [
-        {
-            "title": item.title,
-            "amount": item.amount,
-            "category": item.category,
-            "date": item.date.isoformat()
-        }
-        for item in request.expensed_items 
-        if item.category == request.category
-    ]
+    unique_categories = set()
+    for item in request.expensed_items:
+        if (item.category):
+            unique_categories.add(item.category)
 
     min_date = min(item.date for item in request.expensed_items)
     max_date = max(item.date for item in request.expensed_items)
     date_range = (max_date - min_date).days + 1
 
-    category_expenses = {}
-    for item in request.expensed_items:
-        if item.category not in category_expenses:
-            category_expenses[item.category] = 0
-        category_expenses[item.category] += item.amount
+    async def process_category(category: str):
+        filtered_data = [
+            {
+                "description": item.description,
+                "amount": item.amount,
+                "category": category,
+                "date": item.date.isoformat()
+            }
+            for item in request.expensed_items 
+            if item.category == category
+        ]
 
-    message_content = (
-        f"Here's the spending breakdown for {request.category} over {date_range} days:\n"
-        f"{json.dumps(filtered_data)}\n\n"
-        f"Total expenses by category:\n"
-        f"{json.dumps(category_expenses)}"
-    )
+        category_expenses = {}
+        for item in request.expensed_items:
+            if item.category not in category_expenses:
+                category_expenses[item.category] = 0
+            category_expenses[item.category] += int(item.amount)
 
-    resp = await client.messages.create(
-        model=model_id,
-        max_tokens=2048,
-        messages=[{"role": "system", "content": f"Roast these spending habits related to {request.category} over a period of {date_range} days like you're a stand-up comedian on fire in just one very simple phrase. Be brutally honest, sharp, and hilarious, but keep it fun and lighthearted. Respond in spanish. Currency is in chilean pesos. Consider the total expenses by category."},
-                  {"role": "user", "content":  message_content}],
-        response_model=Roast,
-    )
+        message_content = (
+            f"Here's the spending breakdown for {category} over {date_range} days:\n"
+            f"{json.dumps(filtered_data)}\n\n"
+            f"Total expenses by category:\n"
+            f"{json.dumps(category_expenses)}\n"
+            f"Sum of expenses: ${int(sum(category_expenses.values()))} pesos\n\n"
+        )
+
+        resp = await client.messages.create(
+            model=model_id,
+            max_tokens=2048,
+            messages=[{"role": "system", "content": f"""Analyze these spending habits in the {category} category over a period of {date_range} days and respond in Spanish with a very single witty phrase of no more 30 words. If the total expenses in the category are disproportionately high, deliver a sharp and humorous roast like a stand-up comedian, keeping it fun and lighthearted. If the spending is reasonable or modest, provide a light observation or a constructive tip instead. The currency is in Chilean pesos. Avoid starting sentences with exclamations or using phrases like 'Madre Mía,' 'Compadre,' 'Caramba,' or similar interjections."""},
+                    {"role": "user", "content":  message_content}],
+            response_model=Roast,
+        )
     
-    return resp.model_dump()
+        return (category, resp.comment)
+    
+    responses = await asyncio.gather(*[process_category(category) for category in unique_categories])
+    return {"roasts": {c: r for c, r in responses }}
 
 @router.post("/embedding", response_model=EmbeddingResponse)
 async def create_embedding(request: EmbeddingRequest):

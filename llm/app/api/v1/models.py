@@ -1,4 +1,4 @@
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Dict
 from pydantic import BaseModel, Field
 import datetime
 from enum import Enum
@@ -27,7 +27,7 @@ class CategorizeRequest(BaseModel):
     data: List[CategorizeRequestRow]
 
 class CategorizeResponse(BaseModel):
-    data: List[CategorizeResponseRow]
+    expensed_items: List[CategorizeResponseRow]
 
 
 class ExpenseCategoryWrapped(str, Enum):
@@ -58,9 +58,9 @@ class ExpenseItemWrapped(BaseModel):
     """
     Represents an individual expense/transfer entry
     """
-    amount: float = Field(description="Amount spent in Chilean pesos",gt=0)
+    amount: float = Field(description="Amount spent in Chilean pesos")
     description: str = Field(descriptiodn="Description of the Item")
-    category: ExpenseCategoryWrapped = Field(description="Category of the expense")
+    category: Optional[ExpenseCategoryWrapped] = Field(description="Category of the expense")
     date: Optional[datetime.date] = Field(default=None, description="Date when the expense occurred")
 
 
@@ -160,14 +160,19 @@ class ExpensedItems(BaseModel):
 
 class Roast(BaseModel):
     """
-    Represents a roast of someone's expense habits
+    Represents a comment to someone's expense habits, can be a roast or a simple advice 
     """
-    roast: str = Field(description="Roast of the user's expense habits")
+    comment: str = Field(description="Roast or advice of the user's expense habits")
 
 
 class RoastRequest(BaseModel):
     expensed_items: List[ExpenseItemWrapped] = Field(description="List of all individual expense items")
-    category: ExpenseCategoryWrapped = Field(description="Category of the expense to filter")
+
+class RoastResponse(BaseModel):
+    """
+    Represents a list of roasts of someone's expense habits
+    """
+    roasts: Dict[ExpenseCategoryWrapped, str] = Field(description="Roast of the user's expense habits by category")
 
 class EmbeddingRequest(BaseModel):
     texts: List[str]
