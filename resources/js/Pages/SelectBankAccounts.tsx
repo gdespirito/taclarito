@@ -67,7 +67,7 @@ export default function SelectBankAccounts({
                     <h1 className="mb-4 text-4xl font-bold text-gray-800 dark:text-gray-100">
                         Selecciona que cuentas vamos a sincronizar
                     </h1>
-                    <div className="mx-auto grid grid-cols-3 gap-3">
+                    <div className="mx-auto grid grid-cols-1 md:grid-cols-3 gap-3">
                         {listItems}
                     </div>
                     <div className="flex">
