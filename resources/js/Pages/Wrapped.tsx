@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { useEffect, useState, useRef } from 'react';
 import { useSpring, animated } from '@react-spring/web';
 import { CATEGORIES } from '../utils';
@@ -182,13 +182,14 @@ export default function Wrapped(props: any) {
       <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900 dark:text-white overflow-hidden">
         <div className="relative w-full max-w-4xl h-screen">
           {isLoading ? (
-            <div className="flex-shrink-0 h-screen flex flex-col items-center justify-center">
+            <div className="flex-shrink-0 h-screen flex flex-col items-center justify-center px-4">
               <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent mb-4"></div>
-              <p className="text-3xl text-gray-700 dark:text-gray-300">
+              <p className="text-3xl text-gray-700 dark:text-gray-300 text-center">
                 {messages[currentMessage]}
               </p>
             </div>
           ) : (
+            <>
             <animated.div
               style={{
                 transform: y.to((val) => `translateY(${val}vh)`),
@@ -212,14 +213,16 @@ export default function Wrapped(props: any) {
                       <p>
                         <span className="text-4xl font-bold">${total.toLocaleString()}</span>
                       </p>
+                      <p className='pt-20 animate-bounce text-2xl'>▼</p>
                     </div>
                   ) : (
+                  
                     <div className="flex flex-col items-center justify-center h-full px-6 w-full max-w-3xl">
                       <div className="flex flex-col items-center justify-center h-full w-full rounded-xl bg-gradient-to-r p-8 text-black dark:text-white">
                         <span className="text-8xl mb-6 animate-bounce">
                           {'emoji' in card && card.emoji}
                         </span>
-                        <h2 className="text-5xl font-extrabold mb-4 tracking-wide">
+                        <h2 className="text-5xl font-extrabold mb-4 tracking-wide text-center">
                           {'title' in card && card.title}
                         </h2>
                         <p className="mt-2 text-6xl font-extrabold mb-4 bg-black dark:bg-white text-white dark:text-gray-800 rounded-lg px-4 py-2 shadow-md">
@@ -234,12 +237,30 @@ export default function Wrapped(props: any) {
                         </p>
                       </div>
                     </div>
+                  
+                  
                   )}
+                    
                 </div>
               ))}
             </animated.div>
+           
+            </>
+            
           )}
         </div>
+        <div className="absolute bottom-10 right-10">
+        <button
+            onClick={() => setCurrentIndex(0)}
+            className="flex items-center px-4 py-2 bg-purple-900 text-white font-semibold rounded-lg shadow hover:bg-purple-800 focus:outline-none"
+            >
+            🚀
+            <span className="ml-2">up</span>
+            </button>
+
+            </div>
+
+      
       </div>
     </AuthenticatedLayout>
   );

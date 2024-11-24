@@ -40,7 +40,7 @@ export default function AddFiles() {
                         {!loadedFiles ? (
                             <a
                                 onClick={skip}
-                                className="mt-10 flex cursor-pointer items-center justify-center text-lg hover:underline"
+                                className="mt-10 flex cursor-pointer items-center justify-center text-lg hover:underline text-gray-400"
                             >
                                 Saltar paso. No quiero subir archivos...
                             </a>

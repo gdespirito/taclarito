@@ -77,13 +77,13 @@ export default function FileUpload({ onUploadComplete }: FileUploadProps) {
 
     return (
         <div
-            className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-600 p-6 text-center"
+            className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 p-6 text-center"
             onClick={() => document.getElementById('fileInput')?.click()} // Trigger file input click
             onDragOver={(e) => e.preventDefault()}
             onDrop={handleDrop}
         >
             <span className="mb-4 text-2xl">📄</span>
-            <p className="mb-2 darl:text-gray-300">Subir cartola, boleta, factura, estado de cuenta, etc.</p>
+            <p className="mb-2 darl:text-gray-300">Arrastra o selecciona tu cartola, boleta, factura, estado de cuenta, etc.</p>
             <input
                 id="fileInput"
                 type="file"

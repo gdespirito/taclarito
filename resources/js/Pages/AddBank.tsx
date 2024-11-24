@@ -129,7 +129,7 @@ export default function AddBank({ widget_token }: Props) {
                         </div>
                         <a
                             onClick={skip}
-                            className="mt-10 flex cursor-pointer items-center justify-center text-lg hover:underline"
+                            className="mt-10 flex cursor-pointer items-center justify-center text-lg hover:underline text-gray-400"
                         >
                             Prefiero no conectar con mi banco...
                         </a>
