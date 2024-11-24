@@ -31,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Http::macro('llmApi', function () {
+            return Http::baseUrl('https://api.taclarito.cl/api/v1/');
             if (app()->environment('production')) {
                 return Http::baseUrl('https://api.taclarito.cl/api/v1/');
             }

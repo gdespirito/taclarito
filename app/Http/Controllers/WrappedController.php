@@ -24,8 +24,10 @@ class WrappedController extends Controller
                 return [
                     'category' => $category,
                     'sum' => $movements->sum('amount'),
+                    'count' => $movements->count(),
                 ];
-            });
+            })
+            ->values();
 
         return Inertia::render('Wrapped', ([
             'categories' => $categories,

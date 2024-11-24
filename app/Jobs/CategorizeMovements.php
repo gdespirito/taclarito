@@ -11,7 +11,7 @@ class CategorizeMovements implements ShouldQueue
 {
     use Queueable;
 
-    const CHUNK_SIZE = 4;
+    const CHUNK_SIZE = 20;
 
     /**
      * Create a new job instance.

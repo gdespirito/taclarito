@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\MovementCategoryAssociation;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
@@ -31,10 +32,14 @@ class CategorizeMovementsChunk implements ShouldQueue
                     'id' => $movement['id'],
                     'amount' => $movement['amount'],
                     'description' => $movement['description'],
-                    'date' => $movement['date'],
+                    'date' => Carbon::parse($movement['date'])->format('Y-m-d'),
                 ];
             }),
         ]);
+
+        if (!isset($response['expensed_items'])) {
+            throw new \Exception('Error wrap categorizing movements: ' . print_r($response, true));
+        }
 
         foreach($response['expensed_items'] as $item) {
             MovementCategoryAssociation::updateOrCreate(
