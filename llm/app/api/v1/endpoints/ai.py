@@ -185,14 +185,14 @@ async def roast_endpoint(request: RoastRequest):
             "title": item.title,
             "amount": item.amount,
             "category": item.category,
-            "date": item.date.date().isoformat()
+            "date": item.date.isoformat()
         }
         for item in request.expensed_items 
         if item.category == request.category
     ]
 
-    min_date = min(item.date.date() for item in request.expensed_items)
-    max_date = max(item.date.date() for item in request.expensed_items)
+    min_date = min(item.date for item in request.expensed_items)
+    max_date = max(item.date for item in request.expensed_items)
     date_range = (max_date - min_date).days + 1
 
     category_expenses = {}
