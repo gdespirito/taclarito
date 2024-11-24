@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, router } from "@inertiajs/react";
 import { animated, useSpring } from '@react-spring/web';
 import axios from 'axios';
 import moment from 'moment';
@@ -70,6 +70,7 @@ export default function Wrapped(props: any) {
                 setFintocReady(true);
                 if (fintocReady && filesReady) {
                     setIsLoading(false);
+                    router.reload();
                 }
             })
             .listen('FinishedFileProcess', (e: any) => {
@@ -77,6 +78,7 @@ export default function Wrapped(props: any) {
                 setFilesReady(true);
                 if (fintocReady && filesReady) {
                     setIsLoading(false);
+                    router.reload();
                 }
             });
 
@@ -299,7 +301,7 @@ export default function Wrapped(props: any) {
                         </>
                     )}
                 </div>
-              
+
                 <div className="absolute bottom-10 right-10">
                     <button
                         onClick={() => setCurrentIndex(0)}
