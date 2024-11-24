@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Union
 from pydantic import BaseModel, Field
 import datetime
 from enum import Enum
@@ -10,8 +10,25 @@ class Message(BaseModel):
 class ChatRequest(BaseModel):
     messages: List[Message]
 
+class CategorizeRequestRow(BaseModel):
+    id: Union[str, int] = Field(description="Id")
+    amount: int = Field(description="Amount spent")
+    description: str = Field(descriptiodn="Description of the Item")
+    date: Optional[datetime.date] = Field(default=None, description="Date when the expense occurred")
+
+class CategorizeResponseRow(BaseModel):
+    id: Union[str, int] = Field(description="Id")
+    amount: int = Field(description="Amount spent")
+    description: str = Field(description="Description of the Item")
+    category: Optional[str] = Field(description="Category of the Item")
+    date: Optional[datetime.date] = Field(default=None, description="Date when the expense occurred")
+
 class CategorizeRequest(BaseModel):
-    data: Dict[Any, Any] | List[Dict[Any, Any]] | str
+    data: List[CategorizeRequestRow]
+
+class CategorizeResponse(BaseModel):
+    data: List[CategorizeResponseRow]
+
 
 class ExpenseCategoryWrapped(str, Enum):
     FOOD = "food"
@@ -31,14 +48,21 @@ class ExpenseCategoryWrapped(str, Enum):
     SHOPPING = "shopping"
     OTHER = "other"
 
+class ItemCategoriesWrapped(BaseModel):
+    """
+    Represents an individual expense/transfer entry
+    """
+    categories: List[ExpenseCategoryWrapped] = Field(description="List of categories for each item")
+
 class ExpenseItemWrapped(BaseModel):
     """
     Represents an individual expense/transfer entry
     """
     amount: float = Field(description="Amount spent in Chilean pesos",gt=0)
-    title: str = Field(description="Title of the item")
+    description: str = Field(descriptiodn="Description of the Item")
     category: ExpenseCategoryWrapped = Field(description="Category of the expense")
     date: Optional[datetime.date] = Field(default=None, description="Date when the expense occurred")
+
 
 class ExpensedItemsWrapped(BaseModel):
     """
@@ -110,13 +134,19 @@ class ExpenseCategory(str, Enum):
     BANKS_GOV_AGENCIES_CONSULTANTS = "Consultancy services"
     BANKS_GOV_AGENCIES_OTHER = "Other banking and governmental expenses"
 
+
+class ItemCategories(BaseModel):
+    """
+    Represents an individual expense/transfer entry
+    """
+    categories: List[ExpenseCategory] = Field(description="List of categories for each item")
+
 class ExpenseItem(BaseModel):
     """
     Represents an individual expense/transfer entry
     """
-    id: str = Field(description="Unique identifier for the expense")
     amount: float = Field(description="Amount spent in Chilean pesos",gt=0)
-    title: str = Field(description="Title of the item")
+    description: str = Field(descriptiodn="Description of the Item")
     category: ExpenseCategory = Field(description="Category of the expense")
     date: Optional[datetime.date] = Field(default=None, description="Date when the expense occurred")
 

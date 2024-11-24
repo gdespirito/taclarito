@@ -1,6 +1,10 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
-from ..models import ChatRequest, CategorizeRequest, ExpensedItems, ExpensedItemsWrapped, EmbeddingRequest, EmbeddingResponse, Roast, RoastRequest
+from ..models import (
+    ChatRequest, CategorizeRequest, ExpensedItemsWrapped,
+    EmbeddingRequest, EmbeddingResponse, Roast, RoastRequest,
+    ItemCategories, ItemCategoriesWrapped,
+    CategorizeResponse, CategorizeResponseRow) 
 from typing import List
 from ..utils import process_uploaded_files, generate_text_embeddings, generate_file_hash, generate_string_hash
 from ..cache import get_cached_results, cache_results, log_results
@@ -50,13 +54,13 @@ async def chat_stream(request: ChatRequest):
         media_type="text/event-stream"
     )
 
-@router.post("/categorize-wrapped", response_model=ExpensedItemsWrapped)
+@router.post("/categorize-wrapped", response_model=CategorizeResponse)
 async def categorize_wrapped_endpoint(request: CategorizeRequest):
-    cached_results = get_cached_results(query = generate_string_hash(json.dumps(request.data)), database='wrapped_cache')
+    cached_results = get_cached_results(query = generate_string_hash(request.model_dump_json()), database='wrapped_cache')
     if cached_results:
         logger.info("Using cached results")
         cached_data = json.loads(cached_results)
-        cached_response = ExpensedItemsWrapped(**cached_data)
+        cached_response = CategorizeResponse(**cached_data)
         return cached_response
     
     client = instructor.from_anthropic(AsyncAnthropicBedrock())
@@ -65,24 +69,34 @@ async def categorize_wrapped_endpoint(request: CategorizeRequest):
         model=model_id,
         max_tokens=4096,
         messages=[{"role": "system", "content": "Categorize the provided transactions and identify the individual items or transfers. For transactions from MercadoLibre, Shein, or AliExpress, assign them to their specific categories (e.g., 'mercadoLibre', 'shein', 'aliexpress') instead of using the general 'shopping' category."},
-                  {"role": "user", "content": json.dumps(request.data)}],
-        response_model=ExpensedItemsWrapped,
+                  {"role": "user", "content": request.model_dump_json()}],
+        response_model=ItemCategoriesWrapped,
     )
+
+    response_rows = [ CategorizeResponseRow(
+                        id=request.data[i].id,
+                        category=category,
+                        amount=request.data[i].amount,
+                        description=request.data[i].description,
+                        date=request.data[i].date,
+                      ) for i, (category) in enumerate(resp.categories)]
+
+    final_response = CategorizeResponse(data = response_rows)
     
-    serialized_data = resp.dict(by_alias=True, exclude_none=True)
+    serialized_data = final_response.dict(by_alias=True, exclude_none=True)
     json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, (datetime, date)) else x)
-    cache_results(query = generate_string_hash(json.dumps(request.data)), results = json_data_results, database='wrapped_cache')
-    log_results(query = json.dumps(request.data), results = json_data_results)
+    cache_results(query = generate_string_hash(request.model_dump_json()), results = json_data_results, database='wrapped_cache')
+    log_results(query = request.model_dump_json(), results = json_data_results)
 
-    return resp.model_dump()
+    return final_response.model_dump()
 
-@router.post("/categorize", response_model=ExpensedItems)
+@router.post("/categorize", response_model=CategorizeResponse)
 async def categorize_endpoint(request: CategorizeRequest):
-    cached_results = get_cached_results(query = generate_string_hash(json.dumps(request.data)), database='categorize_cache')
+    cached_results = get_cached_results(query = generate_string_hash(request.model_dump_json()), database='categorize_cache')
     if cached_results:
         logger.info("Using cached results")
         cached_data = json.loads(cached_results)
-        cached_response = ExpensedItems(**cached_data)
+        cached_response = CategorizeResponse(**cached_data)
         return cached_response
     
     client = instructor.from_anthropic(AsyncAnthropicBedrock())
@@ -91,16 +105,26 @@ async def categorize_endpoint(request: CategorizeRequest):
         model=model_id,
         max_tokens=4096,
         messages=[{"role": "system", "content": "Categorize the provided transactions and identify the individual items or transfers."},
-                  {"role": "user", "content": json.dumps(request.data)}],
-        response_model=ExpensedItems,
+                  {"role": "user", "content": request.model_dump_json()}],
+        response_model=ItemCategories,
     )
+
+    response_rows = [ CategorizeResponseRow(
+                    id=request.data[i].id,
+                    category=category,
+                    amount=request.data[i].amount,
+                    description=request.data[i].description,
+                    date=request.data[i].date,
+                    ) for i, (category) in enumerate(resp.categories)]
     
+    final_response = CategorizeResponse(data = response_rows)
+
     serialized_data = resp.dict(by_alias=True, exclude_none=True)
     json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, (datetime, date)) else x)
-    cache_results(query = generate_string_hash(json.dumps(request.data)), results = json_data_results, database='categorize_cache')
-    log_results(query = json.dumps(request.data), results = json_data_results)
+    cache_results(query = generate_string_hash(request.model_dump_json()), results = json_data_results, database='categorize_cache')
+    log_results(query = request.model_dump_json(), results = json_data_results)
 
-    return resp.model_dump()
+    return final_response.model_dump()
 
 @router.post("/categorize-document", response_model=ExpensedItemsWrapped)
 async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
