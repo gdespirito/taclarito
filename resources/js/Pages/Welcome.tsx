@@ -11,7 +11,7 @@ export default function Welcome({ auth }: PageProps) {
                         {/* Title Section */}
                         <div className="mb-8 text-center">
                             <h1 className="mb-4 text-4xl font-bold text-gray-800 dark:text-gray-100">
-                                ¿Tas Clarito? 🤑
+                                ¿Ta Clarito? 🤑
                             </h1>
                             <p className="text-lg text-gray-600 dark:text-gray-400">
                                 Gestiona tus finanzas de manera inteligente

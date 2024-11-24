@@ -10,7 +10,7 @@ export default function Guest({ children }: PropsWithChildren) {
                     <ApplicationLogo className="h-20 w-20 fill-current text-gray-500" />
                 </Link> */}
                 <h1 className="mb-4 text-4xl font-bold text-gray-800 dark:text-gray-100">
-                                ¿Tas Clarito? 🤑
+                    ¿Ta Clarito? 🤑
                 </h1>
             </div>
 

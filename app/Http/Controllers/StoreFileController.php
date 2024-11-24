@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ProcessUploadedFileJob;
 use App\Models\UploadedFile;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Http\Request;
@@ -20,10 +21,12 @@ class StoreFileController extends Controller
 
         $filename = $request->file('file')->store('local');
 
-        UploadedFile::create([
+        $uploadedFile = UploadedFile::create([
             'user_id' => $request->user()->id,
             'filename' => $filename,
         ]);
+
+        dispatch(new ProcessUploadedFileJob($uploadedFile));
 
         return response('', 201);
 
