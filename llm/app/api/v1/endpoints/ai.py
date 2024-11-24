@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
 from ..models import ChatRequest, CategorizeRequest, ExpensedItems, ExpensedItemsWrapped, EmbeddingRequest, EmbeddingResponse, Roast, RoastRequest
 from typing import List
-from ..utils import process_uploaded_files, generate_text_embeddings, serialize_dates
+from ..utils import process_uploaded_files, generate_text_embeddings, generate_file_hash, generate_string_hash
 from ..cache import get_cached_results, cache_results, log_results
 from dotenv import load_dotenv
 import instructor
@@ -11,7 +11,6 @@ from anthropic import AsyncAnthropicBedrock
 from openai import AsyncOpenAI
 import asyncio
 from datetime import datetime, date
-import hashlib
 from loguru import logger
 
 load_dotenv()
@@ -53,7 +52,7 @@ async def chat_stream(request: ChatRequest):
 
 @router.post("/categorize-wrapped", response_model=ExpensedItemsWrapped)
 async def categorize_wrapped_endpoint(request: CategorizeRequest):
-    cached_results = get_cached_results(query = json.dumps(request.data), database='wrapped_cache')
+    cached_results = get_cached_results(query = generate_string_hash(json.dumps(request.data)), database='wrapped_cache')
     if cached_results:
         logger.info("Using cached results")
         cached_data = json.loads(cached_results)
@@ -64,7 +63,7 @@ async def categorize_wrapped_endpoint(request: CategorizeRequest):
     
     resp = await client.messages.create(
         model=model_id,
-        max_tokens=1024,
+        max_tokens=4096,
         messages=[{"role": "system", "content": "Categorize the provided transactions and identify the individual items or transfers. For transactions from MercadoLibre, Shein, or AliExpress, assign them to their specific categories (e.g., 'mercadoLibre', 'shein', 'aliexpress') instead of using the general 'shopping' category."},
                   {"role": "user", "content": json.dumps(request.data)}],
         response_model=ExpensedItemsWrapped,
@@ -72,14 +71,14 @@ async def categorize_wrapped_endpoint(request: CategorizeRequest):
     
     serialized_data = resp.dict(by_alias=True, exclude_none=True)
     json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, (datetime, date)) else x)
-    cache_results(query = json.dumps(request.data), results = json_data_results, database='wrapped_cache')
-    log_results(query = json.dumps(request.data), results = json_data_results)
+    cache_results(query = generate_string_hash(json.dumps(request.data)), results = json_data_results, database='wrapped_cache')
+    log_results(query = generate_string_hash(json.dumps(request.data)), results = json_data_results)
 
     return resp.model_dump()
 
 @router.post("/categorize", response_model=ExpensedItems)
 async def categorize_endpoint(request: CategorizeRequest):
-    cached_results = get_cached_results(query = json.dumps(request.data), database='categorize_cache')
+    cached_results = get_cached_results(query = generate_string_hash(json.dumps(request.data)), database='categorize_cache')
     if cached_results:
         logger.info("Using cached results")
         cached_data = json.loads(cached_results)
@@ -98,8 +97,8 @@ async def categorize_endpoint(request: CategorizeRequest):
     
     serialized_data = resp.dict(by_alias=True, exclude_none=True)
     json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, (datetime, date)) else x)
-    cache_results(query = json.dumps(request.data), results = json_data_results, database='categorize_cache')
-    log_results(query = json.dumps(request.data), results = json_data_results)
+    cache_results(query = generate_string_hash(json.dumps(request.data)), results = json_data_results, database='categorize_cache')
+    log_results(query = generate_string_hash(json.dumps(request.data)), results = json_data_results)
 
     return resp.model_dump()
 
@@ -109,8 +108,7 @@ async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
     processed_files = await process_uploaded_files(files)
     
     all_cached_results = []
-    def generate_file_hash(file_content):
-        return hashlib.sha256(file_content.encode()).hexdigest()
+    
     
     bedrock_client = instructor.from_anthropic(AsyncAnthropicBedrock())
     openai_client = instructor.from_openai(AsyncOpenAI())

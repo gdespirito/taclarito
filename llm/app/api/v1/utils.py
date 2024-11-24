@@ -11,6 +11,7 @@ import tempfile
 import boto3
 import json
 from datetime import datetime
+import hashlib
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -172,3 +173,10 @@ def serialize_dates(obj):
     elif isinstance(obj, datetime):
         return obj.isoformat()  # Convert datetime to ISO 8601 string
     return obj
+
+def generate_string_hash(string_content):
+    """Generate a SHA-256 hash for a normal string."""
+    return hashlib.sha256(string_content.encode()).hexdigest()
+
+def generate_file_hash(file_content):
+        return hashlib.sha256(file_content.encode()).hexdigest()
