@@ -32,29 +32,34 @@ class ProcessUploadedFileJob implements ShouldQueue
      */
     public function handle(): void
     {
-        $response = Http::llmApi()
-            ->asMultipart()
-            ->timeout(500)
-            ->attach('files',
-                file_get_contents(Storage::disk('local')->path($this->uploadedFile->filename)), 'document.pdf')
-            ->post('categorize-document')->json();
-        logger()->info($response)   ;
-        foreach($response['expensed_items'] as $movement) {
-           $movementModel = Movement::create([
+        $filePath = Storage::disk('local')->path($this->uploadedFile->filename);
+        $fileHash = hash_file('sha256', $filePath);
+        $response = cache()->remember($fileHash, now()->addDay(10), function () use ($filePath) {
+            return Http::llmApi()
+                ->asMultipart()
+                ->timeout(500)
+                ->attach('files',
+                    file_get_contents($filePath), 'document.pdf')
+                ->post('categorize-document')->json();
+        });
+
+        foreach ($response['expensed_items'] as $movement) {
+            $movementModel = Movement::updateOrCreate([
                 'user_id' => $this->uploadedFile->user_id,
                 'fintoc_account_id' => null,
                 'date' => Carbon::parse($movement['date']),
                 'description' => $movement['title'],
                 'amount' => $movement['amount'],
                 'currency' => 'clp',
-            ]);
+            ], []);
 
-            MovementWrappedCategoryAssociation::create([
+            MovementWrappedCategoryAssociation::updateOrCreate([
                 'movement_id' => $movementModel->id,
+            ], [
                 'category' => $movement['category'],
             ]);
         }
 
-        dispatch(new CategorizeMovements($this->user));
+        dispatch(new CategorizeMovements($this->uploadedFile->user));
     }
 }

@@ -1,68 +1,195 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useSpring, animated } from '@react-spring/web';
+
+type CategoryCard = {
+  title: string;
+  amount: string;
+  dateRange: string;
+  rant: string;
+  emoji: string;
+  quantity: number;
+  isSummary?: boolean;
+};
 
 export default function Wrapped() {
-    const [isLoading, setIsLoading] = useState(true);
-    const [currentMessage, setCurrentMessage] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentMessage, setCurrentMessage] = useState(0);
+  const [cards, setCards] = useState<CategoryCard[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-    const messages = [
-        'Contando las piscolas... 🥃',
-        '¡Mucho pádel partner 🎾!',
-        'Era necesario lo de MercadoLibre 📦?',
-        'Cómo tantas suscripciones 😱!?',
-    ];
+  const messages = [
+    'Contando las piscolas... 🥃',
+    '¡Mucho pádel partner 🎾!',
+    'Era necesario lo de MercadoLibre 📦?',
+    'Cómo tantas suscripciones 😱!?',
+  ];
 
-    useEffect(() => {
-        let interval: NodeJS.Timeout | undefined;
-        if (isLoading) {
-            interval = setInterval(() => {
-                setCurrentMessage((prev) => (prev + 1) % messages.length);
-            }, 2000); // Switch messages every 2 seconds
-        } else {
-            clearInterval(interval);
-        }
+  const totalSlides = cards.length + 1; // Summary + cards
 
-        return () => clearInterval(interval); // Cleanup on unmount
-    }, [isLoading, messages.length]);
+  const { y } = useSpring({
+    y: currentIndex * -100,
+    config: { tension: 120, friction: 14 },
+  });
+  
+  const isScrolling = useRef(false);
 
-    return (
-        <AuthenticatedLayout>
-            <Head title="Wrapped" />
+  const handleScroll = (deltaY: number) => {
+    if (isScrolling.current) return;
 
-            <div className="flex min-h-screen items-center justify-center bg-gray-100 px-6 py-12 dark:bg-gray-900 dark:text-white">
-                <div className="relative w-full max-w-4xl">
-                    {isLoading ? (
-                        <div
-                            className={`z-10 flex flex-col items-center justify-center bg-gray-100 transition-opacity duration-500 dark:bg-gray-900 ${
-                                isLoading
-                                    ? 'visible opacity-100'
-                                    : 'invisible opacity-0'
-                            }`}
-                        >
-                            <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-                            <p className="mt-4 text-xl text-gray-700 dark:text-gray-300">
-                                {' '}
-                                {messages[currentMessage]}
-                            </p>
-                        </div>
-                    ) : null}
+    if (deltaY > 0 && currentIndex < totalSlides - 1) {
+      isScrolling.current = true;
+      setCurrentIndex((prev) => prev + 1);
+    } else if (deltaY < 0 && currentIndex > 0) {
+      isScrolling.current = true;
+      setCurrentIndex((prev) => prev - 1);
+    }
 
-                    {!isLoading ? (
-                        <div className="rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800">
-                            <div className="mb-8 text-center">
-                                <h1 className="mb-4 text-4xl font-bold text-gray-800 dark:text-gray-100">
-                                    Wrapped
-                                </h1>
-                                <p className="text-lg text-gray-600 dark:text-gray-400">
-                                    Es la manera más simple y rápida de importar
-                                    tus datos 🚀.
-                                </p>
-                            </div>
-                        </div>
-                    ) : null}
-                </div>
+    // Reset the `isScrolling` flag after animation
+    setTimeout(() => {
+      isScrolling.current = false;
+    }, 500); // Match this duration to your animation
+  };
+
+  useEffect(() => {
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      handleScroll(e.deltaY);
+    };
+
+    let touchStartY = 0;
+
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      const touchEndY = e.changedTouches[0].clientY;
+      const deltaY = touchStartY - touchEndY;
+
+      if (Math.abs(deltaY) > 50) {
+        handleScroll(deltaY);
+      }
+    };
+
+    window.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('touchstart', onTouchStart);
+    window.addEventListener('touchend', onTouchEnd);
+
+    return () => {
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [currentIndex, totalSlides]);
+
+  useEffect(() => {
+    setTimeout(() => {
+      const fetchedCards = [
+        {
+          title: 'Delivery',
+          amount: '$1.560.000',
+          dateRange: '01 Jan - 31 Jan',
+          quantity: 10,
+          rant: 'Vamos bajando la cantidad de deliverys, ¿no?',
+          emoji: '🍔',
+        },
+        {
+          title: 'Food',
+          amount: '$200.000',
+          dateRange: '01 Jan - 31 Jan',
+          quantity: 10,
+          rant: 'ñam ñam',
+          emoji: '🍕',
+        },
+        {
+          title: 'Health',
+          amount: '$3.000.100',
+          dateRange: '01 Jan - 31 Jan',
+          quantity: 2,
+          rant: '¿Tantas pastillas? 💊',
+          emoji: '💊',
+        },
+        {
+          title: 'Shopping',
+          amount: '$500.000',
+          quantity: 98,
+          rant: '¿Otra vez comprando ropa? 👗',
+          dateRange: '01 Jan - 31 Jan',
+          emoji: '🛍️',
+        },
+      ];
+      setCards(fetchedCards);
+      setIsLoading(false);
+    }, 2000);
+  }, []);
+
+  return (
+    <AuthenticatedLayout>
+      <Head title="Wrapped" />
+      <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900 dark:text-white overflow-hidden">
+        <div className="relative w-full max-w-4xl h-screen">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center">
+              <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+              <p className="mt-4 text-xl text-gray-700 dark:text-gray-300">
+                {messages[currentMessage]}
+              </p>
             </div>
-        </AuthenticatedLayout>
-    );
+          ) : (
+            <animated.div
+              style={{
+                transform: y.to((val) => `translateY(${val}vh)`),
+              }}
+              className="h-full"
+            >
+              {[{ isSummary: true }, ...cards].map((card, index) => (
+                <div
+                  key={index}
+                  className="flex-shrink-0 h-screen flex items-center justify-center"
+                >
+                  {card.isSummary ? (
+                    <div className="flex flex-col items-center justify-center h-full px-6 w-full max-w-3xl">
+                      <h1 className="text-6xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text pb-3 text-center">
+                        Resumen de tus gastos
+                      </h1>
+                      <p className="text-lg text-gray-600 dark:text-gray-400 pb-3 text-center">
+                        Desde el 17 de enero al 20 de noviembre del 2024
+                        gastaste:
+                      </p>
+                      <p>
+                        <span className="text-4xl font-bold">$56.900.800</span>
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full px-6 w-full max-w-3xl">
+                      <div className="flex flex-col items-center justify-center h-full w-full rounded-xl bg-gradient-to-r p-8 text-black dark:text-white">
+                        <span className="text-8xl mb-6 animate-bounce">
+                          {'emoji' in card && card.emoji}
+                        </span>
+                        <h2 className="text-5xl font-extrabold mb-4 tracking-wide">
+                          {'title' in card && card.title}
+                        </h2>
+                        <p className="mt-2 text-6xl font-extrabold mb-4 bg-black dark:bg-white text-white dark:text-gray-800 rounded-lg px-4 py-2 shadow-md">
+                          {'amount' in card && card.amount}
+                        </p>
+                        <p className="mt-4 text-3xl font-bold text-yellow-600 dark:text-yellow-300">
+                          {'quantity' in card && card.quantity}{' '}
+                          {'quantity' in card && (card.quantity === 1 ? 'compra' : 'compras')}
+                        </p>
+                        <p className="mt-4 text-2xl italic font-light dark:text-gray-200">
+                          {"rant" in card && card.rant}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </animated.div>
+          )}
+        </div>
+      </div>
+    </AuthenticatedLayout>
+  );
 }
