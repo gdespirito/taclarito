@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
-from ..models import ChatRequest, CategorizeRequest, ExpensedItems, ExpensedItemsWrapped, EmbeddingRequest, EmbeddingResponse, Roast
+from ..models import ChatRequest, CategorizeRequest, ExpensedItems, ExpensedItemsWrapped, EmbeddingRequest, EmbeddingResponse, Roast, RoastRequest
 from typing import List
 from ..utils import process_uploaded_files, generate_text_embeddings, serialize_dates
 from ..cache import get_cached_results, cache_results, log_results
@@ -177,14 +177,42 @@ async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
     return results
 
 @router.post("/roast", response_model=Roast)
-async def roast_endpoint(request: CategorizeRequest):
+async def roast_endpoint(request: RoastRequest):
     client = instructor.from_anthropic(AsyncAnthropicBedrock())
-    
+
+    filtered_data = [
+        {
+            "title": item.title,
+            "amount": item.amount,
+            "category": item.category,
+            "date": item.date.date().isoformat()
+        }
+        for item in request.expensed_items 
+        if item.category == request.category
+    ]
+
+    min_date = min(item.date.date() for item in request.expensed_items)
+    max_date = max(item.date.date() for item in request.expensed_items)
+    date_range = (max_date - min_date).days + 1
+
+    category_expenses = {}
+    for item in request.expensed_items:
+        if item.category not in category_expenses:
+            category_expenses[item.category] = 0
+        category_expenses[item.category] += item.amount
+
+    message_content = (
+        f"Here's the spending breakdown for {request.category} over {date_range} days:\n"
+        f"{json.dumps(filtered_data)}\n\n"
+        f"Total expenses by category:\n"
+        f"{json.dumps(category_expenses)}"
+    )
+
     resp = await client.messages.create(
         model=model_id,
         max_tokens=2048,
-        messages=[{"role": "system", "content": "Roast these spending habits like you're a stand-up comedian on fire. Be brutally honest, sharp, and hilarious, but keep it fun and lighthearted. Respond in spanish."},
-                  {"role": "user", "content":  "Here's the spending breakdown:\n "+json.dumps(request.data)}],
+        messages=[{"role": "system", "content": f"Roast these spending habits related to {request.category} over a period of {date_range} days like you're a stand-up comedian on fire in just one very simple phrase. Be brutally honest, sharp, and hilarious, but keep it fun and lighthearted. Respond in spanish. Currency is in chilean pesos. Consider the total expenses by category."},
+                  {"role": "user", "content":  message_content}],
         response_model=Roast,
     )
     
