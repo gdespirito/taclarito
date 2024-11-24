@@ -45,8 +45,14 @@ class ProcessUploadedFileJob implements ShouldQueue
                 ->timeout(500)
                 ->attach('files',
                     file_get_contents($filePath), 'document.pdf')
-                ->post('categorize-document')->json();
+                ->post('categorize-document');
         });
+
+        if ($response->failed()) {
+            throw new \Exception('Error processing uploaded file: Status '.$response->status().' Body: '.$response->body());
+        }
+
+        $response = $response->json();
 
         foreach ($response['expensed_items'] as $movement) {
             $movementModel = Movement::updateOrCreate([

@@ -60,8 +60,8 @@ class ExpenseItemWrapped(BaseModel):
     """
     amount: float = Field(description="Amount spent in Chilean pesos")
     description: str = Field(descriptiodn="Description of the Item")
-    category: Optional[ExpenseCategoryWrapped] = Field(description="Category of the expense")
-    date: Optional[datetime.date] = Field(default=None, description="Date when the expense occurred")
+    category: ExpenseCategoryWrapped = Field(description="Category of the expense", default="other")
+    date: datetime.date = Field(default=None, description="Date when the expense occurred")
 
 
 class ExpensedItemsWrapped(BaseModel):
@@ -160,7 +160,7 @@ class ExpensedItems(BaseModel):
 
 class Roast(BaseModel):
     """
-    Represents a comment to someone's expense habits, can be a roast or a simple advice 
+    Represents a comment to someone's expense habits, can be a roast or a simple advice
     """
     comment: str = Field(description="Roast or advice of the user's expense habits")
 

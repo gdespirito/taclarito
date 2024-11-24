@@ -3,14 +3,14 @@ import json
 import psycopg2
 import logging
 
-CACHE_INTERVAL = "1 day"
+CACHE_INTERVAL = "1 second"
 
 def get_cached_results(query, database='wrapped_cache'):
     try:
         query_str = f"""
-            SELECT results 
+            SELECT results
             FROM {database}
-            WHERE query = %s 
+            WHERE query = %s
             AND created_at > NOW() - INTERVAL %s
             ORDER BY created_at DESC
             LIMIT 1

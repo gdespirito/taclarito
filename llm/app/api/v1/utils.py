@@ -18,14 +18,14 @@ load_dotenv()
 
 def is_page_readable(page):
     text = page.get_text()
-    min_characters = 300 
-    text_ratio = len(text.strip()) / max(1, len(text)) 
-    
+    min_characters = 300
+    text_ratio = len(text.strip()) / max(1, len(text))
+
     return len(text.strip()) >= min_characters and text_ratio > 0.8
 
 async def process_uploaded_files(files: List[UploadFile]):
     results = []
-    
+
     for upload_file in files:
         # Crear un archivo temporal para guardar el contenido
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
@@ -35,13 +35,13 @@ async def process_uploaded_files(files: List[UploadFile]):
 
         try:
             file_extension = Path(upload_file.filename).suffix.lower()
-            
+
             # Procesar PDFs
             if file_extension == '.pdf':
                 pdf_document = fitz.open(temp_path)
                 for page_num in range(pdf_document.page_count):
                     page = pdf_document[page_num]
-                    
+
                     if is_page_readable(page):
                         text = page.get_text()
                         results.append({
@@ -125,7 +125,7 @@ async def process_uploaded_files(files: List[UploadFile]):
                 'type': 'error',
                 'format': file_extension[1:] if file_extension else 'unknown'
             })
-        
+
         finally:
             # Limpiar el archivo temporal
             os.unlink(temp_path)

@@ -4,7 +4,7 @@ from ..models import (
     ChatRequest, CategorizeRequest, ExpensedItemsWrapped,
     EmbeddingRequest, EmbeddingResponse, Roast, RoastRequest, RoastResponse,
     ItemCategories, ItemCategoriesWrapped,
-    CategorizeResponse, CategorizeResponseRow) 
+    CategorizeResponse, CategorizeResponseRow)
 from typing import List
 from ..utils import process_uploaded_files, generate_text_embeddings, generate_file_hash, generate_string_hash
 from ..cache import get_cached_results, cache_results, log_results
@@ -62,15 +62,15 @@ async def categorize_wrapped_endpoint(request: CategorizeRequest):
         cached_data = json.loads(cached_results)
         cached_response = CategorizeResponse(**cached_data)
         return cached_response
-    
+
     bedrock_client = instructor.from_anthropic(AsyncAnthropicBedrock())
     openai_client = instructor.from_openai(AsyncOpenAI())
 
     messages=[{"role": "system", "content": "Categorize the provided transactions and identify the individual items or transfers. For transactions from MercadoLibre, Shein, or AliExpress, assign them to their specific categories (e.g., 'mercadoLibre', 'shein', 'aliexpress') instead of using the general 'shopping' category."},
               {"role": "user", "content": request.model_dump_json()}]
-    
+
     resp = None
-    
+
     try:
         resp = await bedrock_client.messages.create(
             model=model_id,
@@ -95,7 +95,7 @@ async def categorize_wrapped_endpoint(request: CategorizeRequest):
                       ) for i, (category) in enumerate(resp.categories)]
 
     final_response = CategorizeResponse(expensed_items = response_rows)
-    
+
     serialized_data = final_response.dict(by_alias=True, exclude_none=True)
     json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, (datetime, date)) else x)
     cache_results(query = generate_string_hash(request.model_dump_json()), results = json_data_results, database='wrapped_cache')
@@ -111,10 +111,10 @@ async def categorize_endpoint(request: CategorizeRequest):
         cached_data = json.loads(cached_results)
         cached_response = CategorizeResponse(**cached_data)
         return cached_response
-    
+
     bedrock_client = instructor.from_anthropic(AsyncAnthropicBedrock())
     openai_client = instructor.from_openai(AsyncOpenAI())
-    
+
     resp = None
 
     messages = [{"role": "system", "content": "Categorize the provided transactions and identify the individual items or transfers."},
@@ -141,7 +141,7 @@ async def categorize_endpoint(request: CategorizeRequest):
                     description=request.data[i].description,
                     date=request.data[i].date,
                     ) for i, (category) in enumerate(resp.categories)]
-    
+
     final_response = CategorizeResponse(expensed_items = response_rows)
 
     serialized_data = resp.dict(by_alias=True, exclude_none=True)
@@ -155,9 +155,9 @@ async def categorize_endpoint(request: CategorizeRequest):
 async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
     results: ExpensedItemsWrapped = ExpensedItemsWrapped(expensed_items=[])
     processed_files = await process_uploaded_files(files)
-    
+
     all_cached_results = []
-    
+
     bedrock_client = instructor.from_anthropic(AsyncAnthropicBedrock())
     openai_client = instructor.from_openai(AsyncOpenAI())
 
@@ -170,7 +170,7 @@ async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
                 logger.info(f"Using cached results for file with hash: {file_hash}")
                 cached_data = json.loads(cached_results)
                 return ExpensedItemsWrapped(**cached_data).expensed_items
-            
+
             resp = None
             if file_data['type'] == 'text':
                 messages = [{"role": "system", "content": "Categorize the provided transactions and identify the individual items or transfers. For transactions from MercadoLibre, Shein, or AliExpress, assign them to their specific categories (e.g., 'mercadoLibre', 'shein', 'aliexpress') instead of using the general 'shopping' category."},
@@ -223,26 +223,12 @@ async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
             raise HTTPException(status_code=500, detail=f"Error categorizando el documento: {e}")
 
     responses = await asyncio.gather(*[process_single_file(file_data) for file_data in processed_files])
-    
+
     for response in responses:
         all_cached_results.extend(response)
 
-    sorted_results = sorted(all_cached_results, key=lambda x: x.date)
-    filtered_results = []
-    for i in range(len(sorted_results)):
-        if i == 0:
-            filtered_results.append(sorted_results[i])
-            continue
-            
-        current_date = sorted_results[i].date
-        previous_date = filtered_results[-1].date
-        
-        date_diff = (current_date - previous_date).days
-        
-        if date_diff <= 30:
-            filtered_results.append(sorted_results[i])
 
-    results.expensed_items = filtered_results
+    results.expensed_items = all_cached_results
     return results
 
 @router.post("/roast", response_model=RoastResponse)
@@ -267,7 +253,7 @@ async def roast_endpoint(request: RoastRequest):
                 "category": category,
                 "date": item.date.isoformat()
             }
-            for item in request.expensed_items 
+            for item in request.expensed_items
             if item.category == category
         ]
 
@@ -305,9 +291,9 @@ async def roast_endpoint(request: RoastRequest):
                 response_model=Roast,
             )
 
-    
+
         return (category, resp.comment)
-    
+
     responses = await asyncio.gather(*[process_category(category) for category in unique_categories])
     return {"roasts": {c: r for c, r in responses }}
 
