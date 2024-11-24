@@ -58,7 +58,6 @@ class ExpenseItemWrapped(BaseModel):
     """
     Represents an individual expense/transfer entry
     """
-    id: str = Field(description="Unique identifier for the expense")
     amount: float = Field(description="Amount spent in Chilean pesos",gt=0)
     description: str = Field(descriptiodn="Description of the Item")
     category: ExpenseCategoryWrapped = Field(description="Category of the expense")
