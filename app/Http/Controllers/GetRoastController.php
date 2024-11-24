@@ -23,7 +23,7 @@ class GetRoastController extends Controller
                     'description' => $item->description,
                     'category' => $item->wrappedCategory->category ?? null,
                     'amount' => $item->amount,
-                    'date' => $item->date,
+                    'date' => $item->date->format('Y-m-d'),
                 ];
             }),
         ])->json();
