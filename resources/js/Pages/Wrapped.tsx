@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, router } from "@inertiajs/react";
+import { Head, router, Link } from "@inertiajs/react";
 import { animated, useSpring } from '@react-spring/web';
 import axios from 'axios';
 import moment from 'moment';
@@ -300,6 +300,14 @@ export default function Wrapped(props: any) {
                             </animated.div>
                         </>
                     )}
+                </div>
+                <div className="absolute bottom-10 left-10">
+                    <Link 
+                            href={route('movements.index')}
+                        className="flex items-center rounded-lg bg-purple-900 px-4 py-2 font-semibold text-white shadow hover:bg-purple-800 focus:outline-none"
+                    >
+                        Movimientos
+                    </Link>
                 </div>
 
                 <div className="absolute bottom-10 right-10">
