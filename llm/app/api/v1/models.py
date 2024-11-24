@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field
-from datetime import datetime
+import datetime
 from enum import Enum
 
 class Message(BaseModel):
@@ -35,11 +35,10 @@ class ExpenseItemWrapped(BaseModel):
     """
     Represents an individual expense/transfer entry
     """
-    id: str = Field(description="Unique identifier for the expense")
     amount: float = Field(description="Amount spent in Chilean pesos",gt=0)
     title: str = Field(description="Title of the item")
     category: ExpenseCategoryWrapped = Field(description="Category of the expense")
-    date: Optional[datetime] = Field(default=None, description="Date when the expense occurred")
+    date: Optional[datetime.date] = Field(default=None, description="Date when the expense occurred")
 
 class ExpensedItemsWrapped(BaseModel):
     """
@@ -119,7 +118,7 @@ class ExpenseItem(BaseModel):
     amount: float = Field(description="Amount spent in Chilean pesos",gt=0)
     title: str = Field(description="Title of the item")
     category: ExpenseCategory = Field(description="Category of the expense")
-    date: Optional[datetime] = Field(default=None, description="Date when the expense occurred")
+    date: Optional[datetime.date] = Field(default=None, description="Date when the expense occurred")
 
 class ExpensedItems(BaseModel):
     """
@@ -135,6 +134,10 @@ class Roast(BaseModel):
     """
     roast: str = Field(description="Roast of the user's expense habits")
 
+
+class RoastRequest(BaseModel):
+    expensed_items: List[ExpenseItemWrapped] = Field(description="List of all individual expense items")
+    category: ExpenseCategoryWrapped = Field(description="Category of the expense to filter")
 
 class EmbeddingRequest(BaseModel):
     texts: List[str]

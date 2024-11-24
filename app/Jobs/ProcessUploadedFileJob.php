@@ -14,6 +14,10 @@ class ProcessUploadedFileJob implements ShouldQueue
 {
     use Queueable;
 
+    public $maxExceptions = 1;
+
+    public $timeout = 500;
+
     /**
      * Create a new job instance.
      */
@@ -33,7 +37,7 @@ class ProcessUploadedFileJob implements ShouldQueue
             ->attach('files',
                 file_get_contents(Storage::disk('local')->path($this->uploadedFile->filename)), 'document.pdf')
             ->post('categorize-document')->json();
-
+        logger()->info($response)   ;
         foreach($response['expensed_items'] as $movement) {
             Movement::create([
                 'user_id' => $this->uploadedFile->user_id,
