@@ -41,7 +41,7 @@ export default function SelectBankAccounts({ movements }: Props) {
                                             .replace(',', '')}
                                     </span>
                                     <span className="ml-auto font-bold text-green-700 dark:text-green-400">
-                                        {movement.category.category ?? '-'}
+                                        {movement.category?.category ?? '-'}
                                     </span>
                                 </div>
                             </div>
