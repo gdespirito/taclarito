@@ -38,8 +38,10 @@
     "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
     "dependencies": {
         "@fintoc/fintoc-js": "^1.1.2",
+        "@react-spring/web": "^9.7.5",
         "chart.js": "^4.4.6",
+        "html-to-image": "^1.11.11",
+        "html2canvas": "^1.4.1",
         "react-chartjs-2": "^5.2.0"
-   
     }
 }
