@@ -48,7 +48,7 @@ class ProcessUploadedFileJob implements ShouldQueue
                 'user_id' => $this->uploadedFile->user_id,
                 'fintoc_account_id' => null,
                 'date' => Carbon::parse($movement['date']),
-                'description' => $movement['title'],
+                'description' => $movement['description'],
                 'amount' => $movement['amount'],
                 'currency' => 'clp',
             ], []);

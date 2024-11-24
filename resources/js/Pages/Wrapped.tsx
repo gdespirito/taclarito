@@ -3,6 +3,7 @@ import { Head } from '@inertiajs/react';
 import { useEffect, useState, useRef } from 'react';
 import { useSpring, animated } from '@react-spring/web';
 
+
 type CategoryCard = {
   title: string;
   amount: string;
@@ -13,7 +14,8 @@ type CategoryCard = {
   isSummary?: boolean;
 };
 
-export default function Wrapped() {
+export default function Wrapped(props:any) {
+  console.log(props);
   const [isLoading, setIsLoading] = useState(true);
   const [currentMessage, setCurrentMessage] = useState(0);
   const [cards, setCards] = useState<CategoryCard[]>([]);
@@ -131,12 +133,13 @@ export default function Wrapped() {
       <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900 dark:text-white overflow-hidden">
         <div className="relative w-full max-w-4xl h-screen">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center">
-              <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-              <p className="mt-4 text-xl text-gray-700 dark:text-gray-300">
-                {messages[currentMessage]}
-              </p>
-            </div>
+           <div className="flex-shrink-0 h-screen flex flex-col items-center justify-center">
+           <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent mb-4"></div>
+           <p className="text-xl text-gray-700 dark:text-gray-300">
+             {messages[currentMessage]}
+           </p>
+         </div>
+         
           ) : (
             <animated.div
               style={{

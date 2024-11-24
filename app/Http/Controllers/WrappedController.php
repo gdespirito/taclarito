@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Movement;
+use App\Models\MovementWrappedCategoryAssociation;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -12,6 +14,23 @@ class WrappedController extends Controller
      */
     public function __invoke(Request $request)
     {
-        return Inertia::render('Wrapped');
+        $minDate = Movement::where('user_id', auth()->id())->min('date');
+        $maxDate = Movement::where('user_id', auth()->id())->max('date');
+        $categories = Movement::where('user_id', auth()->id())
+            ->with('wrappedCategory')
+            ->get()
+            ->groupBy('wrappedCategory.category')
+            ->map(function ($movements, $category) {
+                return [
+                    'category' => $category,
+                    'sum' => $movements->sum('amount'),
+                ];
+            });
+
+        return Inertia::render('Wrapped', ([
+            'categories' => $categories,
+            'minDate' => $minDate,
+            'maxDate' => $maxDate,
+        ]));
     }
 }

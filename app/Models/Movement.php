@@ -16,4 +16,9 @@ class Movement extends Model
     {
         return $this->hasOne(MovementCategoryAssociation::class, 'movement_id');
     }
+
+    public function wrappedCategory()
+    {
+        return $this->hasOne(MovementWrappedCategoryAssociation::class, 'movement_id');
+    }
 }
