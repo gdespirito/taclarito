@@ -10,7 +10,7 @@ import json
 from anthropic import AsyncAnthropicBedrock
 from openai import AsyncOpenAI
 import asyncio
-from datetime import datetime
+from datetime import datetime, date
 import hashlib
 from loguru import logger
 
@@ -71,7 +71,7 @@ async def categorize_wrapped_endpoint(request: CategorizeRequest):
     )
     
     serialized_data = resp.dict(by_alias=True, exclude_none=True)
-    json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, datetime) else x)
+    json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, (datetime, date)) else x)
     cache_results(query = json.dumps(request.data), results = json_data_results, database='wrapped_cache')
     log_results(query = json.dumps(request.data), results = json_data_results)
 
@@ -97,7 +97,7 @@ async def categorize_endpoint(request: CategorizeRequest):
     )
     
     serialized_data = resp.dict(by_alias=True, exclude_none=True)
-    json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, datetime) else x)
+    json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, (datetime, date)) else x)
     cache_results(query = json.dumps(request.data), results = json_data_results, database='categorize_cache')
     log_results(query = json.dumps(request.data), results = json_data_results)
 
@@ -158,7 +158,7 @@ async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
 
                 # Guardar en caché los resultados
                 serialized_data = resp.dict(by_alias=True, exclude_none=True)
-                json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, datetime) else x)
+                json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, (datetime, date)) else x)
                 cache_results(query=file_hash, results=json_data_results, database='document_cache')
                 log_results(query=file_hash, results=json_data_results)
 
