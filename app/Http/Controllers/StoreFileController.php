@@ -30,10 +30,11 @@ class StoreFileController extends Controller
             'filename' => $filename,
         ]);
 
-        Bus::batch(new ProcessUploadedFileJob($uploadedFile))
+        Bus::batch([new ProcessUploadedFileJob($uploadedFile)])
             ->finally(function (Batch $batch) {
-                event(new FinishedFileProcess(auth()->user()->id));
+                event(new FinishedFileProcess($batch->options['user_id']));
             })
+            ->withOption('user_id', auth()->user()->id)
             ->allowFailures()->dispatch();
 
         return response('', 201);
