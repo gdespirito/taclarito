@@ -11,4 +11,9 @@ class Movement extends Model
     protected $casts = [
         'date' => 'datetime'
     ];
+
+    public function category()
+    {
+        return $this->hasOne(MovementCategoryAssociation::class, 'movement_id');
+    }
 }

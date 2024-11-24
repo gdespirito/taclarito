@@ -35,5 +35,7 @@ class CategorizeMovementsChunk implements ShouldQueue
                 ['category' => $item['category']],
             );
         }
+
+        dispatch(new CategorizeMovements($this->user));
     }
 }
