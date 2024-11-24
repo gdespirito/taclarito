@@ -26,7 +26,14 @@ class CategorizeMovementsChunk implements ShouldQueue
     public function handle(): void
     {
         $response = Http::llmApi()->post('categorize', [
-            'data' => json_encode($this->movements),
+            'data' => json_encode(collect($this->movements)->map(function ($movement) {
+                return [
+                    'id' => $movement['id'],
+                    'amount' => $movement['amount'],
+                    'description' => $movement['description'],
+                    'date' => $movement['date'],
+                ];
+            })),
         ])->json();
 
         foreach($response['expensed_items'] as $item) {
