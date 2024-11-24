@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { animated, useSpring } from '@react-spring/web';
 import axios from 'axios';
 import moment from 'moment';
@@ -299,6 +299,7 @@ export default function Wrapped(props: any) {
                         </>
                     )}
                 </div>
+              
                 <div className="absolute bottom-10 right-10">
                     <button
                         onClick={() => setCurrentIndex(0)}
