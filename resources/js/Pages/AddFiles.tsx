@@ -52,7 +52,7 @@ export default function AddFiles() {
                                     onClick={() =>
                                         router.visit(route('wrapped'))
                                     }
-                                    className="mt-10 cursor-pointer items-center justify-center rounded-lg bg-green-700 px-20 py-2 text-lg transition-all hover:scale-105"
+                                    className="mt-10 cursor-pointer items-center justify-center rounded-lg text-white bg-green-700 px-20 py-2 text-lg transition-all hover:scale-105"
                                 >
                                     Continuar
                                 </a>

@@ -1,14 +1,17 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, router } from "@inertiajs/react";
+import { Head, router } from '@inertiajs/react';
 import axios from 'axios';
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 interface Props {
     fintoc_accounts: any;
     fintoc_link_id: string;
 }
 
-export default function SelectBankAccounts({ fintoc_accounts, fintoc_link_id }: Props) {
+export default function SelectBankAccounts({
+    fintoc_accounts,
+    fintoc_link_id,
+}: Props) {
     async function save(e: any) {
         const selectedAccounts = Array.from(
             document.querySelectorAll('input[name="account[]"]:checked'),
@@ -16,7 +19,7 @@ export default function SelectBankAccounts({ fintoc_accounts, fintoc_link_id }: 
 
         e.preventDefault();
 
-        await axios.post(route('save-selected-bank-accounts', fintoc_link_id ), {
+        await axios.post(route('save-selected-bank-accounts', fintoc_link_id), {
             accounts: selectedAccounts,
         });
 
@@ -32,12 +35,12 @@ export default function SelectBankAccounts({ fintoc_accounts, fintoc_link_id }: 
 
     useEffect(() => {
         selectAll();
-    }, [])
+    }, []);
 
     const listItems = fintoc_accounts.map((account: any) => (
         <div
-            className="m-2 flex items-center rounded-lg bg-gray-900 p-2 text-left shadow"
             key={account.id}
+            className="flex items-center rounded-lg bg-white p-2 shadow-lg dark:bg-gray-800"
         >
             <div className="mr-4 p-2">
                 <input
@@ -61,25 +64,21 @@ export default function SelectBankAccounts({ fintoc_accounts, fintoc_link_id }: 
 
             <div className="flex min-h-screen items-center justify-center bg-gray-100 px-6 py-12 dark:bg-gray-900 dark:text-white">
                 <div className="relative w-full max-w-4xl">
-                    <div className="rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800">
-                        <div className="mb-8 text-center">
-                            <h1 className="mb-20 text-4xl font-bold text-gray-800 dark:text-gray-100">
-                                Selecciona que cuentas vamos a sincronizar
-                            </h1>
-
-                            <div className="mx-auto grid max-w-xl grid-cols-2">
-                                {listItems}
-                            </div>
-
-                            <div className="mx-auto mt-10 flex items-center justify-center">
-                                <a
-                                    href=""
-                                    onClick={save}
-                                    className="rounded-lg bg-green-700 px-20 py-3 hover:scale-105 transition-all"
-                                >
-                                    Continuar
-                                </a>
-                            </div>
+                    <h1 className="mb-4 text-4xl font-bold text-gray-800 dark:text-gray-100">
+                        Selecciona que cuentas vamos a sincronizar
+                    </h1>
+                    <div className="mx-auto grid grid-cols-3 gap-3">
+                        {listItems}
+                    </div>
+                    <div className="flex">
+                        <div className="ml-auto mt-10 flex items-center justify-center">
+                            <a
+                                href=""
+                                onClick={save}
+                                className="rounded-lg bg-green-700 px-20 py-3 text-white transition-all hover:scale-105"
+                            >
+                                Continuar
+                            </a>
                         </div>
                     </div>
                 </div>

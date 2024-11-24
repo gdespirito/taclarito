@@ -23,9 +23,9 @@ export default function Authenticated({
                         <div className="flex">
                             <div className="flex shrink-0 items-center">
                                 <Link href="/">
-                                    <span className='text-white text-2xl font-bold'>taclarito.cl 💰</span>
+                                    <span className='dark:text-white text-2xl font-bold'>taclarito.cl 💰</span>
                                 </Link>
-                            </div>  
+                            </div>
 
                             <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                                 <NavLink

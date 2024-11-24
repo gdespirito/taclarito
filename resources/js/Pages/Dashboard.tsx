@@ -115,7 +115,7 @@ export default function Dashboard() {
                                         <a
                                             href=""
                                             onClick={start}
-                                            className="rounded-lg bg-green-700 px-20 py-3"
+                                            className="rounded-lg bg-green-700 px-20 py-3 text-white"
                                         >
                                             Démosle
                                         </a>

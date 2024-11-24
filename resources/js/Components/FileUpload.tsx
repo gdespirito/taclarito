@@ -83,7 +83,7 @@ export default function FileUpload({ onUploadComplete }: FileUploadProps) {
             onDrop={handleDrop}
         >
             <span className="mb-4 text-2xl">📄</span>
-            <p className="mb-2 text-gray-300">Subir cartola, boleta, factura, estado de cuenta, etc.</p>
+            <p className="mb-2 darl:text-gray-300">Subir cartola, boleta, factura, estado de cuenta, etc.</p>
             <input
                 id="fileInput"
                 type="file"
@@ -100,7 +100,7 @@ export default function FileUpload({ onUploadComplete }: FileUploadProps) {
                     >
                         {/* File Name and Size */}
                         <div className="col-span-1">
-                            <p className="truncate font-semibold text-gray-300">
+                            <p className="truncate font-semibold dark:text-gray-300">
                                 {file.name}
                             </p>
                             <p className="text-sm text-gray-500">
