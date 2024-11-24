@@ -58,9 +58,9 @@ class ExpenseItemWrapped(BaseModel):
     """
     Represents an individual expense/transfer entry
     """
-    amount: float = Field(description="Amount spent in Chilean pesos",gt=0)
+    amount: float = Field(description="Amount spent in Chilean pesos")
     description: str = Field(descriptiodn="Description of the Item")
-    category: ExpenseCategoryWrapped = Field(description="Category of the expense")
+    category: Optional[ExpenseCategoryWrapped] = Field(description="Category of the expense")
     date: Optional[datetime.date] = Field(default=None, description="Date when the expense occurred")
 
 

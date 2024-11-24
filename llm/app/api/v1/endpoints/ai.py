@@ -218,7 +218,8 @@ async def roast_endpoint(request: RoastRequest):
 
     unique_categories = set()
     for item in request.expensed_items:
-        unique_categories.add(item.category)
+        if (item.category):
+            unique_categories.add(item.category)
 
     min_date = min(item.date for item in request.expensed_items)
     max_date = max(item.date for item in request.expensed_items)
