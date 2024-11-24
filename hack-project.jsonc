@@ -1,6 +1,6 @@
 { 
     "project_name": "Taclarito",
-    "oneliner": "Herramienta de gestión financiera personal que utiliza IA para clasificar gastos y generar recomendaciones personalizadas",
+    "oneliner": "Herramienta de gestión financiera que utiliza IA para categorizar gastos y generar recomendaciones personalizadas",
     "logo_url": "https://github.com/platanus-hack/team-20/blob/main/logo.png",
     "app_url": "https://taclarito.cl"
 }
