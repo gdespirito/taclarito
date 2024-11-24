@@ -10,6 +10,7 @@ type CategoryCard = {
   rant: string;
   emoji: string;
   quantity: number;
+  isSummary?: boolean;
 };
 
 export default function Wrapped() {
@@ -145,19 +146,29 @@ export default function Wrapped() {
                   ) : (
                     <div className="flex flex-col items-center justify-center h-full px-6 w-full max-w-3xl">
                     <div className="flex flex-col items-center justify-center h-full w-full rounded-xl bg-gradient-to- p-8 shadow-lg text-white">
-                      <span className="text-8xl mb-6 animate-bounce">{card.emoji}</span>
-                      <h2 className="text-5xl font-extrabold mb-4 tracking-wide">
-                        {card.title}
-                      </h2>
-                      <p className="mt-2 text-6xl font-extrabold mb-4 bg-white text-gray-800 rounded-lg px-4 py-2 shadow-md">
-                        {card.amount}
-                      </p>
-                      <p className="mt-4 text-3xl font-bold text-yellow-300">
-                         {card.quantity} {card.quantity === 1 ? 'compra' : 'compras'} 
-                      </p>
-                      <p className="mt-4 text-2xl italic font-light text-gray-200">
-                        "{card.rant}"
-                      </p>
+                      {'emoji' in card && (
+                        <span className="text-8xl mb-6 animate-bounce">{card.emoji}</span>
+                      )}
+                      {'title' in card && (
+                        <h2 className="text-5xl font-extrabold mb-4 tracking-wide">
+                          {card.title}
+                        </h2>
+                      )}
+                      {'amount' in card && (
+                        <p className="mt-2 text-6xl font-extrabold mb-4 bg-white text-gray-800 rounded-lg px-4 py-2 shadow-md">
+                          {card.amount}
+                        </p>
+                      )}
+                      {'quantity' in card && (
+                        <p className="mt-4 text-3xl font-bold text-yellow-300">
+                          {card.quantity} {card.quantity === 1 ? 'compra' : 'compras'}
+                        </p>
+                      )}
+                      {'rant' in card && (
+                        <p className="mt-4 text-2xl italic font-light text-gray-200">
+                          "{card.rant}"
+                        </p>
+                      )}
                     </div>
                   </div>
                   
