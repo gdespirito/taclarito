@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Movement;
+use App\Models\MovementWrappedCategoryAssociation;
 use App\Models\UploadedFile;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -39,7 +40,7 @@ class ProcessUploadedFileJob implements ShouldQueue
             ->post('categorize-document')->json();
         logger()->info($response)   ;
         foreach($response['expensed_items'] as $movement) {
-            Movement::create([
+           $movementModel = Movement::create([
                 'user_id' => $this->uploadedFile->user_id,
                 'fintoc_account_id' => null,
                 'date' => Carbon::parse($movement['date']),
@@ -47,6 +48,13 @@ class ProcessUploadedFileJob implements ShouldQueue
                 'amount' => $movement['amount'],
                 'currency' => 'clp',
             ]);
+
+            MovementWrappedCategoryAssociation::create([
+                'movement_id' => $movementModel->id,
+                'category' => $movement['category'],
+            ]);
         }
+
+        dispatch(new CategorizeMovements($this->user));
     }
 }

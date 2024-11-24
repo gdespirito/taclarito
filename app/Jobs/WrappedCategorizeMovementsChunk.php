@@ -3,12 +3,13 @@
 namespace App\Jobs;
 
 use App\Models\MovementCategoryAssociation;
+use App\Models\MovementWrappedCategoryAssociation;
 use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
 
-class CategorizeMovementsChunk implements ShouldQueue
+class WrappedCategorizeMovementsChunk implements ShouldQueue
 {
     use Queueable;
 
@@ -25,12 +26,12 @@ class CategorizeMovementsChunk implements ShouldQueue
      */
     public function handle(): void
     {
-        $response = Http::llmApi()->post('categorize', [
+        $response = Http::llmApi()->post('categorize-wrapped', [
             'data' => json_encode($this->movements),
         ])->json();
 
         foreach($response['expensed_items'] as $item) {
-            MovementCategoryAssociation::updateOrCreate(
+            MovementWrappedCategoryAssociation::updateOrCreate(
                 ['movement_id' => $item['id']],
                 ['category' => $item['category']],
             );

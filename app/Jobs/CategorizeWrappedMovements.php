@@ -3,11 +3,13 @@
 namespace App\Jobs;
 
 use App\Models\Movement;
+use App\Models\MovementCategoryAssociation;
 use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Http;
 
-class CategorizeMovements implements ShouldQueue
+class CategorizeWrappedMovements implements ShouldQueue
 {
     use Queueable;
 
@@ -22,12 +24,12 @@ class CategorizeMovements implements ShouldQueue
     }
 
     /**
-     * Execute the job.e
+     * Execute the job.
      */
     public function handle(): void
     {
         Movement::where('user_id', $this->user->id)->whereDoesntHave('category')->chunk(static::CHUNK_SIZE, function ($movements) {
-            dispatch(new CategorizeMovementsChunk($this->user, $movements->toArray()));
+            dispatch(new WrappedCategorizeMovementsChunk($this->user, $movements->toArray()));
         });
 
 
