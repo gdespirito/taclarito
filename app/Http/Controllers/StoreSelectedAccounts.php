@@ -31,7 +31,7 @@ class StoreSelectedAccounts extends Controller
         }
 
         Bus::batch(new GetFintocMovementsJob(auth()->user(), $bankLink))
-            ->then(function (Batch $batch) {
+            ->finally(function (Batch $batch) {
                 event(new FinishedFintocImport(auth()->user()->id));
             })
             ->allowFailures()
