@@ -71,7 +71,6 @@ export default function Wrapped() {
           amount: '$3.000.100',
           dateRange: '01 Jan - 31 Jan',
           quantity: 2,
-
           rant: '¿Tantas pastillas? 💊',
           emoji: '💊',
         },
@@ -97,9 +96,45 @@ export default function Wrapped() {
     }
   };
 
+  const handleTouch = () => {
+    let touchStartY = 0;
+    let touchEndY = 0;
+
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      touchEndY = e.touches[0].clientY;
+    };
+
+    const onTouchEnd = () => {
+      const touchDifference = touchStartY - touchEndY;
+
+      if (Math.abs(touchDifference) > 50) {
+        if (touchDifference > 0 && currentIndex < totalSlides - 1) {
+          setCurrentIndex((prev) => prev + 1);
+        } else if (touchDifference < 0 && currentIndex > 0) {
+          setCurrentIndex((prev) => prev - 1);
+        }
+      }
+    };
+
+    window.addEventListener('touchstart', onTouchStart);
+    window.addEventListener('touchmove', onTouchMove);
+    window.addEventListener('touchend', onTouchEnd);
+
+    return () => {
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+    };
+  };
+
   useEffect(() => {
     const onWheel = (e: WheelEvent) => handleScroll(e);
     window.addEventListener('wheel', onWheel);
+    handleTouch();
 
     return () => {
       window.removeEventListener('wheel', onWheel);
@@ -135,7 +170,7 @@ export default function Wrapped() {
                       <h1 className="text-6xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text pb-3 text-center">
                         Resumen de tus gastos
                       </h1>
-                      <p className="text-lg text-gray-600 dark:text-gray-400 pb-3 text-center   ">
+                      <p className="text-lg text-gray-600 dark:text-gray-400 pb-3 text-center">
                         Desde el 17 de enero al 20 de noviembre del 2024
                         gastaste:
                       </p>
@@ -145,34 +180,25 @@ export default function Wrapped() {
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center h-full px-6 w-full max-w-3xl">
-                    <div className="flex flex-col items-center justify-center h-full w-full rounded-xl bg-gradient-to- p-8 shadow-lg text-white">
-                      {'emoji' in card && (
-                        <span className="text-8xl mb-6 animate-bounce">{card.emoji}</span>
-                      )}
-                      {'title' in card && (
+                      <div className="flex flex-col items-center justify-center h-full w-full rounded-xl bg-gradient-to-r p-8 shadow-lg text-white">
+                        <span className="text-8xl mb-6 animate-bounce">
+                          {'emoji' in card && card.emoji}
+                        </span>
                         <h2 className="text-5xl font-extrabold mb-4 tracking-wide">
-                          {card.title}
+                          {'title' in card && card.title}
                         </h2>
-                      )}
-                      {'amount' in card && (
                         <p className="mt-2 text-6xl font-extrabold mb-4 bg-white text-gray-800 rounded-lg px-4 py-2 shadow-md">
-                          {card.amount}
+                          {'amount' in card && card.amount}
                         </p>
-                      )}
-                      {'quantity' in card && (
                         <p className="mt-4 text-3xl font-bold text-yellow-300">
-                          {card.quantity} {card.quantity === 1 ? 'compra' : 'compras'}
+                          {'quantity' in card && card.quantity}{' '}
+                          {'quantity' in card && card.quantity === 1 ? 'compra' : 'compras'}
                         </p>
-                      )}
-                      {'rant' in card && (
                         <p className="mt-4 text-2xl italic font-light text-gray-200">
-                          "{card.rant}"
+                          {"rant" in card && `"${card.rant}"`}
                         </p>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                  
-                  
                   )}
                 </div>
               ))}
