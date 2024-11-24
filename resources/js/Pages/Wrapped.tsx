@@ -2,7 +2,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import { useEffect, useState, useRef } from 'react';
 import { useSpring, animated } from '@react-spring/web';
-
+import { CATEGORIES } from '../utils';
+import moment from 'moment';
+import axios from 'axios';
+import 'moment/locale/es';
 
 type CategoryCard = {
   title: string;
@@ -14,13 +17,15 @@ type CategoryCard = {
   isSummary?: boolean;
 };
 
-export default function Wrapped(props:any) {
-  console.log(props);
+export default function Wrapped(props: any) {
+  moment.locale('es');
+  console.log('Wrapped props:', props);
   const [isLoading, setIsLoading] = useState(true);
   const [currentMessage, setCurrentMessage] = useState(0);
   const [cards, setCards] = useState<CategoryCard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [total, setTotal] = useState(0);
+  const [roast, setRoast] = useState<Record<string, string>>({}); // Roast messages
 
   const messages = [
     'Contando las piscolas... 🥃',
@@ -35,11 +40,11 @@ export default function Wrapped(props:any) {
     y: currentIndex * -100,
     config: { tension: 120, friction: 14 },
   });
-  
+
   const isScrolling = useRef(false);
 
   const handleScroll = (deltaY: number) => {
-    if (isScrolling.current) return;
+    if (isScrolling.current || isLoading) return; // Disable scrolling until data is loaded
 
     if (deltaY > 0 && currentIndex < totalSlides - 1) {
       isScrolling.current = true;
@@ -49,7 +54,6 @@ export default function Wrapped(props:any) {
       setCurrentIndex((prev) => prev - 1);
     }
 
-    // Reset the `isScrolling` flag after animation
     setTimeout(() => {
       isScrolling.current = false;
     }, 500); // Match this duration to your animation
@@ -85,35 +89,60 @@ export default function Wrapped(props:any) {
       window.removeEventListener('touchstart', onTouchStart);
       window.removeEventListener('touchend', onTouchEnd);
     };
-  }, [currentIndex, totalSlides]);
+  }, [currentIndex, totalSlides, isLoading]); // Added isLoading to dependencies
 
   useEffect(() => {
-    const categories = props.categories;
-  
-    const fetchedCards:any = Object.keys(categories).map((key) => {
-      const category = categories[key];
-      return {
-        title: category.category.charAt(0).toUpperCase() + category.category.slice(1), // Capitalize the title
-        amount: `$${category.sum.toLocaleString()}`, // Format amount with currency
-        quantity: Math.ceil(category.sum / 1000), // Placeholder quantity logic
-        rant: `¿Estás gastando mucho en ${category.category}?`, // Placeholder rant
-        emoji: '💸', // Placeholder emoji
-      };
-    });
-  
-    // Calculate the total sum
-    const totalAmount:any = Object.values(categories).reduce((acc, category: any) => acc + category.sum, 0);
-  
-    setCards(fetchedCards);
-    setTotal(totalAmount);
-    setIsLoading(false);
+    const fetchData = async () => {
+      try {
+        // Fetch roast data
+        const roastResponse = await axios.get('/roast');
+        const roastData = roastResponse.data || {};
+        setRoast(roastData.roasts || {}); // Access the "roasts" key
+
+        // Process categories after roast data is fetched
+        const categories = props.categories;
+
+        const fetchedCards: any = Object.keys(categories).map((key) => {
+          const category = categories[key];
+          const categoryKey = category.category; // Use the category name directly
+          // Find the category info from CATEGORIES
+          const categoryInfo = Object.values(CATEGORIES).find(
+            (cat) => cat.key === categoryKey
+          );
+
+          return {
+            title: categoryInfo?.label || category.category,
+            amount: `$${category.sum.toLocaleString()}`,
+            quantity: category.count,
+            rant:
+              roastData.roasts?.[categoryKey] ||
+              `¿Estás gastando mucho en ${categoryInfo?.label || category.category}?`,
+            emoji: categoryInfo?.emoji || '❓',
+          };
+        });
+
+        const totalAmount: any = Object.values(categories).reduce(
+          (acc, category: any) => acc + category.sum,
+          0
+        );
+
+        setCards(fetchedCards);
+        setTotal(totalAmount);
+        setIsLoading(false); // Data is fully loaded
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setRoast({
+          default: '¡No pudimos traer tu roast, pero aquí está tu resumen de gastos!',
+        });
+        setIsLoading(false); // Even if there's an error, stop loading
+      }
+    };
+
+    fetchData();
   }, [props.categories]);
-  
-  
-  const formattedMinDate = props.minDate.split(' ')[0];
-  const formattedMaxDate = props.maxDate.split(' ')[0];
-  
-  
+
+  const formattedMinDate = moment(props.minDate).format('D [de] MMMM');
+  const formattedMaxDate = moment(props.maxDate).format('D [de] MMMM [del] YYYY');
 
   return (
     <AuthenticatedLayout>
@@ -121,13 +150,12 @@ export default function Wrapped(props:any) {
       <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900 dark:text-white overflow-hidden">
         <div className="relative w-full max-w-4xl h-screen">
           {isLoading ? (
-           <div className="flex-shrink-0 h-screen flex flex-col items-center justify-center">
-           <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent mb-4"></div>
-           <p className="text-xl text-gray-700 dark:text-gray-300">
-             {messages[currentMessage]}
-           </p>
-         </div>
-         
+            <div className="flex-shrink-0 h-screen flex flex-col items-center justify-center">
+              <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent mb-4"></div>
+              <p className="text-3xl text-gray-700 dark:text-gray-300">
+                {messages[currentMessage]}
+              </p>
+            </div>
           ) : (
             <animated.div
               style={{
@@ -142,17 +170,17 @@ export default function Wrapped(props:any) {
                 >
                   {card.isSummary ? (
                     <div className="flex flex-col items-center justify-center h-full px-6 w-full max-w-3xl">
-                    <h1 className="text-6xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text pb-3 text-center">
-                      Resumen de tus gastos
-                    </h1>
-                    <p className="text-lg text-gray-600 dark:text-gray-400 pb-3 text-center">
-                      Desde el {formattedMinDate} al {formattedMaxDate} gastaste:
-                    </p>
-                    <p>
-                    <span className="text-4xl font-bold">${total.toLocaleString()}</span>
-                    </p>
-                  </div>
-                  
+                      <h1 className="text-6xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text pb-3 text-center">
+                        Resumen de tus gastos
+                      </h1>
+                      <p className="text-lg text-gray-600 dark:text-gray-400 pb-3 text-center"></p>
+                      <p className="text-lg text-gray-600 dark:text-gray-400 pb-3 text-center">
+                        Desde el {formattedMinDate} al {formattedMaxDate} gastaste:
+                      </p>
+                      <p>
+                        <span className="text-4xl font-bold">${total.toLocaleString()}</span>
+                      </p>
+                    </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center h-full px-6 w-full max-w-3xl">
                       <div className="flex flex-col items-center justify-center h-full w-full rounded-xl bg-gradient-to-r p-8 text-black dark:text-white">
@@ -170,7 +198,7 @@ export default function Wrapped(props:any) {
                           {'quantity' in card && (card.quantity === 1 ? 'compra' : 'compras')}
                         </p>
                         <p className="mt-4 text-2xl italic font-light dark:text-gray-200">
-                          {"rant" in card && card.rant}
+                          {'rant' in card && card.rant}
                         </p>
                       </div>
                     </div>
