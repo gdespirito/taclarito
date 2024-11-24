@@ -18,7 +18,7 @@ export default function SelectBankAccounts({ movements }: Props) {
 
                     <div className="flex flex-col flex-wrap">
                         {movements.map((movement:any) => (
-                            <div key={`movement-${movement.id}`} className="my-2 rounded bg-white p-3 shadow">
+                            <div key={`movement-${movement.id}`} className="my-2 rounded bg-white dark:bg-gray-600 p-3 shadow">
                                 <div className="flex items-center justify-center">
                                     <span>{movement.description}</span>
                                     <span className="ml-auto text-lg font-bold">
@@ -29,7 +29,7 @@ export default function SelectBankAccounts({ movements }: Props) {
                                     </span>
                                 </div>
                                 <div className="flex">
-                                    <span className="text-xs text-gray-600">
+                                    <span className="text-xs text-gray-600 dark:text-white">
                                         {new Date(movement.date)
                                             .toLocaleString('es-CL', {
                                                 year: 'numeric',
@@ -40,7 +40,7 @@ export default function SelectBankAccounts({ movements }: Props) {
                                             })
                                             .replace(',', '')}
                                     </span>
-                                    <span className="ml-auto font-bold text-green-700">
+                                    <span className="ml-auto font-bold text-green-700 dark:text-green-400">
                                         {movement.category.category}
                                     </span>
                                 </div>
