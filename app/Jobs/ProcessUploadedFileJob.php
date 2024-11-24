@@ -6,6 +6,7 @@ use App\Models\Movement;
 use App\Models\MovementWrappedCategoryAssociation;
 use App\Models\UploadedFile;
 use Carbon\Carbon;
+use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ProcessUploadedFileJob implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, Batchable;
 
     public $maxExceptions = 1;
 
@@ -32,6 +33,10 @@ class ProcessUploadedFileJob implements ShouldQueue
      */
     public function handle(): void
     {
+        if ($this->batch()->cancelled()) {
+            return;
+        }
+
         $filePath = Storage::disk('local')->path($this->uploadedFile->filename);
         $fileHash = hash_file('sha256', $filePath);
         $response = cache()->remember($fileHash, now()->addDay(10), function () use ($filePath) {
@@ -60,6 +65,6 @@ class ProcessUploadedFileJob implements ShouldQueue
             ]);
         }
 
-        dispatch(new CategorizeMovements($this->uploadedFile->user));
+        $this->batch()->add(new CategorizeMovements($this->uploadedFile->user));
     }
 }

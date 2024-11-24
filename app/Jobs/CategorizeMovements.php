@@ -4,12 +4,13 @@ namespace App\Jobs;
 
 use App\Models\Movement;
 use App\Models\User;
+use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
 class CategorizeMovements implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, Batchable;
 
     const CHUNK_SIZE = 20;
 
@@ -26,9 +27,16 @@ class CategorizeMovements implements ShouldQueue
      */
     public function handle(): void
     {
-        Movement::where('user_id', $this->user->id)->whereDoesntHave('category')->chunk(static::CHUNK_SIZE, function ($movements) {
-            dispatch(new CategorizeMovementsChunk($this->user, $movements->toArray()));
+        if ($this->batch()->cancelled()) {
+            return;
+        }
+
+        $jobs = [];
+        Movement::where('user_id', $this->user->id)->whereDoesntHave('category')->chunk(static::CHUNK_SIZE, function ($movements) use (&$jobs) {
+            $jobs[] = new CategorizeMovementsChunk($this->user, $movements->toArray());
         });
+
+        $this->batch()->add($jobs);
 
 
     }

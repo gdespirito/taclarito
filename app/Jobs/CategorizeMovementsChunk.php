@@ -5,13 +5,14 @@ namespace App\Jobs;
 use App\Models\MovementCategoryAssociation;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
 
 class CategorizeMovementsChunk implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, Batchable;
 
     /**
      * Create a new job instance.
@@ -26,6 +27,10 @@ class CategorizeMovementsChunk implements ShouldQueue
      */
     public function handle(): void
     {
+        if ($this->batch()->cancelled()) {
+            return;
+        }
+
         $response = Http::llmApi()->post('categorize', [
             'data' => collect($this->movements)->map(function ($movement) {
                 return [
