@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSpring, animated } from '@react-spring/web';
 
 type CategoryCard = {
@@ -28,24 +28,61 @@ export default function Wrapped() {
 
   const totalSlides = cards.length + 1; // Summary + cards
 
-  // Spring animation for smooth scrolling
   const { y } = useSpring({
-    y: currentIndex * -100, // Calculate the Y offset based on the index
-    config: { tension: 120, friction: 14 }, // Adjust tension and friction for smoother animation
+    y: currentIndex * -100,
+    config: { tension: 120, friction: 14 },
   });
+  
+  const isScrolling = useRef(false);
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout | undefined;
-    if (isLoading) {
-      interval = setInterval(() => {
-        setCurrentMessage((prev) => (prev + 1) % messages.length);
-      }, 1000);
-    } else {
-      clearInterval(interval);
+  const handleScroll = (deltaY: number) => {
+    if (isScrolling.current) return;
+
+    if (deltaY > 0 && currentIndex < totalSlides - 1) {
+      isScrolling.current = true;
+      setCurrentIndex((prev) => prev + 1);
+    } else if (deltaY < 0 && currentIndex > 0) {
+      isScrolling.current = true;
+      setCurrentIndex((prev) => prev - 1);
     }
 
-    return () => clearInterval(interval);
-  }, [isLoading, messages.length]);
+    // Reset the `isScrolling` flag after animation
+    setTimeout(() => {
+      isScrolling.current = false;
+    }, 500); // Match this duration to your animation
+  };
+
+  useEffect(() => {
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      handleScroll(e.deltaY);
+    };
+
+    let touchStartY = 0;
+
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      const touchEndY = e.changedTouches[0].clientY;
+      const deltaY = touchStartY - touchEndY;
+
+      if (Math.abs(deltaY) > 50) {
+        handleScroll(deltaY);
+      }
+    };
+
+    window.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('touchstart', onTouchStart);
+    window.addEventListener('touchend', onTouchEnd);
+
+    return () => {
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [currentIndex, totalSlides]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -85,61 +122,8 @@ export default function Wrapped() {
       ];
       setCards(fetchedCards);
       setIsLoading(false);
-    }, 1000);
+    }, 2000);
   }, []);
-
-  const handleScroll = (e: WheelEvent) => {
-    if (e.deltaY > 0 && currentIndex < totalSlides - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    } else if (e.deltaY < 0 && currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
-    }
-  };
-
-  const handleTouch = () => {
-    let touchStartY = 0;
-    let touchEndY = 0;
-
-    const onTouchStart = (e: TouchEvent) => {
-      touchStartY = e.touches[0].clientY;
-    };
-
-    const onTouchMove = (e: TouchEvent) => {
-      touchEndY = e.touches[0].clientY;
-    };
-
-    const onTouchEnd = () => {
-      const touchDifference = touchStartY - touchEndY;
-
-      if (Math.abs(touchDifference) > 50) {
-        if (touchDifference > 0 && currentIndex < totalSlides - 1) {
-          setCurrentIndex((prev) => prev + 1);
-        } else if (touchDifference < 0 && currentIndex > 0) {
-          setCurrentIndex((prev) => prev - 1);
-        }
-      }
-    };
-
-    window.addEventListener('touchstart', onTouchStart);
-    window.addEventListener('touchmove', onTouchMove);
-    window.addEventListener('touchend', onTouchEnd);
-
-    return () => {
-      window.removeEventListener('touchstart', onTouchStart);
-      window.removeEventListener('touchmove', onTouchMove);
-      window.removeEventListener('touchend', onTouchEnd);
-    };
-  };
-
-  useEffect(() => {
-    const onWheel = (e: WheelEvent) => handleScroll(e);
-    window.addEventListener('wheel', onWheel);
-    handleTouch();
-
-    return () => {
-      window.removeEventListener('wheel', onWheel);
-    };
-  }, [currentIndex, totalSlides]);
 
   return (
     <AuthenticatedLayout>
@@ -180,22 +164,22 @@ export default function Wrapped() {
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center h-full px-6 w-full max-w-3xl">
-                      <div className="flex flex-col items-center justify-center h-full w-full rounded-xl bg-gradient-to-r p-8 shadow-lg text-white">
+                      <div className="flex flex-col items-center justify-center h-full w-full rounded-xl bg-gradient-to-r p-8 text-black dark:text-white">
                         <span className="text-8xl mb-6 animate-bounce">
                           {'emoji' in card && card.emoji}
                         </span>
                         <h2 className="text-5xl font-extrabold mb-4 tracking-wide">
                           {'title' in card && card.title}
                         </h2>
-                        <p className="mt-2 text-6xl font-extrabold mb-4 bg-white text-gray-800 rounded-lg px-4 py-2 shadow-md">
+                        <p className="mt-2 text-6xl font-extrabold mb-4 bg-black dark:bg-white text-white dark:text-gray-800 rounded-lg px-4 py-2 shadow-md">
                           {'amount' in card && card.amount}
                         </p>
-                        <p className="mt-4 text-3xl font-bold text-yellow-300">
+                        <p className="mt-4 text-3xl font-bold text-yellow-600 dark:text-yellow-300">
                           {'quantity' in card && card.quantity}{' '}
-                          {'quantity' in card && card.quantity === 1 ? 'compra' : 'compras'}
+                          {'quantity' in card && (card.quantity === 1 ? 'compra' : 'compras')}
                         </p>
-                        <p className="mt-4 text-2xl italic font-light text-gray-200">
-                          {"rant" in card && `"${card.rant}"`}
+                        <p className="mt-4 text-2xl italic font-light dark:text-gray-200">
+                          {"rant" in card && card.rant}
                         </p>
                       </div>
                     </div>
