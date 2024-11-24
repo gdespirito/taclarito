@@ -52,7 +52,7 @@ async def chat_stream(request: ChatRequest):
     )
 
 @router.post("/categorize-wrapped", response_model=ExpensedItemsWrapped)
-async def categorize_endpoint(request: CategorizeRequest):
+async def categorize_wrapped_endpoint(request: CategorizeRequest):
     cached_results = get_cached_results(query = json.dumps(request.data), database='wrapped_cache')
     if cached_results:
         logger.info("Using cached results")
