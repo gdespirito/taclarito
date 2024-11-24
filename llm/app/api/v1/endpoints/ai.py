@@ -72,7 +72,7 @@ async def categorize_wrapped_endpoint(request: CategorizeRequest):
     serialized_data = resp.dict(by_alias=True, exclude_none=True)
     json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, (datetime, date)) else x)
     cache_results(query = generate_string_hash(json.dumps(request.data)), results = json_data_results, database='wrapped_cache')
-    log_results(query = generate_string_hash(json.dumps(request.data)), results = json_data_results)
+    log_results(query = json.dumps(request.data), results = json_data_results)
 
     return resp.model_dump()
 
@@ -98,7 +98,7 @@ async def categorize_endpoint(request: CategorizeRequest):
     serialized_data = resp.dict(by_alias=True, exclude_none=True)
     json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, (datetime, date)) else x)
     cache_results(query = generate_string_hash(json.dumps(request.data)), results = json_data_results, database='categorize_cache')
-    log_results(query = generate_string_hash(json.dumps(request.data)), results = json_data_results)
+    log_results(query = json.dumps(request.data), results = json_data_results)
 
     return resp.model_dump()
 
