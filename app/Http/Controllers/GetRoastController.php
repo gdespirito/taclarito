@@ -15,9 +15,6 @@ class GetRoastController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $this->validate($request, [
-            'category' => 'required'
-        ]);
 
         $movements = Movement::where('user_id', $request->user()->id)->with('wrappedCategory')->get();
         return Http::llmApi()->post('roast', [
