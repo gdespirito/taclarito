@@ -47,17 +47,6 @@ export default function SelectBankAccounts({ movements }: Props) {
                             </div>
                         ))}
                     </div>
-
-                    <div className="flex">
-                        <div className="ml-auto mt-10 flex items-center justify-center">
-                            <a
-                                href=""
-                                className="rounded-lg bg-green-700 px-20 py-3 text-white transition-all hover:scale-105"
-                            >
-                                Continuar
-                            </a>
-                        </div>
-                    </div>
                 </div>
             </div>
         </AuthenticatedLayout>
