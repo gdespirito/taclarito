@@ -1,10 +1,15 @@
 <?php
 
 use App\Http\Controllers\AddBankController;
+use App\Http\Controllers\AddFilesController;
 use App\Http\Controllers\GetFintocMovementsController;
 use App\Http\Controllers\ListBanksController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\SaveBanksController;
+use App\Http\Controllers\StoreBanksController;
+use App\Http\Controllers\SelectBankAccountsController;
+use App\Http\Controllers\StoreFileController;
+use App\Http\Controllers\StoreSelectedAccounts;
+use App\Http\Controllers\WrappedController;
 use App\Models\User;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -23,9 +28,14 @@ Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('/add-bank', AddBankController::class);
-Route::post('/banks', SaveBanksController::class)->name('banks.store');
+Route::get('/banks/{fintocLinkId}/select-accounts', SelectBankAccountsController::class)->name('banks.select-accounts');
+Route::post('/banks', StoreBanksController::class)->name('banks.store');
+Route::post('banks/{fintocLinkId}/select-accounts', StoreSelectedAccounts::class)->name('save-selected-bank-accounts');
 Route::get('/banks', ListBanksController::class)->name('banks.index');
+Route::get('/add-files', AddFilesController::class)->name('add-files');
+Route::get('/wrapped', WrappedController::class)->name('wrapped');
 Route::get('/movements', GetFintocMovementsController::class)->name('movements.get');
+Route::post('/files', StoreFileController::class)->name('files.store');
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
