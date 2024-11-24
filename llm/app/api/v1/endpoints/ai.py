@@ -2,13 +2,16 @@ from fastapi import APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
 from ..models import ChatRequest, CategorizeRequest, ExpensedItems, ExpensedItemsWrapped, EmbeddingRequest, EmbeddingResponse, Roast
 from typing import List
-from ..utils import process_uploaded_files, generate_text_embeddings
+from ..utils import process_uploaded_files, generate_text_embeddings, serialize_dates
+from ..cache import get_cached_results, cache_results, log_results
 from dotenv import load_dotenv
 import instructor
 import json
 from anthropic import AsyncAnthropicBedrock
 from openai import AsyncOpenAI
 import asyncio
+from datetime import datetime
+from loguru import logger
 
 load_dotenv()
 
@@ -49,6 +52,13 @@ async def chat_stream(request: ChatRequest):
 
 @router.post("/categorize-wrapped", response_model=ExpensedItemsWrapped)
 async def categorize_endpoint(request: CategorizeRequest):
+    cached_results = get_cached_results(query = json.dumps(request.data), database='wrapped_cache')
+    if cached_results:
+        logger.info("Using cached results")
+        cached_data = json.loads(cached_results)
+        cached_response = ExpensedItemsWrapped(**cached_data)
+        return cached_response
+    
     client = instructor.from_anthropic(AsyncAnthropicBedrock())
     
     resp = await client.messages.create(
@@ -59,10 +69,22 @@ async def categorize_endpoint(request: CategorizeRequest):
         response_model=ExpensedItemsWrapped,
     )
     
+    serialized_data = resp.dict(by_alias=True, exclude_none=True)
+    json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, datetime) else x)
+    cache_results(query = json.dumps(request.data), results = json_data_results, database='wrapped_cache')
+    log_results(query = json.dumps(request.data), results = json_data_results)
+
     return resp.model_dump()
 
 @router.post("/categorize", response_model=ExpensedItems)
 async def categorize_endpoint(request: CategorizeRequest):
+    cached_results = get_cached_results(query = json.dumps(request.data), database='categorize_cache')
+    if cached_results:
+        logger.info("Using cached results")
+        cached_data = json.loads(cached_results)
+        cached_response = ExpensedItems(**cached_data)
+        return cached_response
+    
     client = instructor.from_anthropic(AsyncAnthropicBedrock())
     
     resp = await client.messages.create(
@@ -73,6 +95,11 @@ async def categorize_endpoint(request: CategorizeRequest):
         response_model=ExpensedItems,
     )
     
+    serialized_data = resp.dict(by_alias=True, exclude_none=True)
+    json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, datetime) else x)
+    cache_results(query = json.dumps(request.data), results = json_data_results, database='categorize_cache')
+    log_results(query = json.dumps(request.data), results = json_data_results)
+
     return resp.model_dump()
 
 @router.post("/categorize-document", response_model=ExpensedItems)

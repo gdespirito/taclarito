@@ -10,6 +10,7 @@ import shutil
 import tempfile
 import boto3
 import json
+from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -161,3 +162,13 @@ def generate_text_embeddings(texts: List[str], input_type: str = "search_documen
     response_body = json.loads(response.get('body').read())
 
     return { "embeddings": response_body.get('embeddings') }
+
+
+def serialize_dates(obj):
+    if isinstance(obj, dict):
+        return {k: serialize_dates(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [serialize_dates(item) for item in obj]
+    elif isinstance(obj, datetime):
+        return obj.isoformat()  # Convert datetime to ISO 8601 string
+    return obj
