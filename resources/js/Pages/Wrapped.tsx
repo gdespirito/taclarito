@@ -6,7 +6,7 @@ import { CATEGORIES } from '../utils';
 import moment from 'moment';
 import axios from 'axios';
 import 'moment/locale/es';
-
+import { ToastContainer, toast } from 'react-toastify';
 type CategoryCard = {
   title: string;
   amount: string;
@@ -18,8 +18,8 @@ type CategoryCard = {
 };
 
 export default function Wrapped(props: any) {
+
   moment.locale('es');
-  console.log('Wrapped props:', props);
   const [isLoading, setIsLoading] = useState(true);
   const [currentMessage, setCurrentMessage] = useState(0);
   const [cards, setCards] = useState<CategoryCard[]>([]);
@@ -62,10 +62,20 @@ export default function Wrapped(props: any) {
   };
 
   useEffect(() => {
+
+      window.Echo.private(`App.Models.User.${props.auth.user.id}`)
+          .listen('FinishedFintocImport', (e: any) => {
+              toast("Ya está lista la carga de movimientos de tu banco");
+          })
+          .listen('FinishedFileProcess', (e: any) => {
+              toast("Ya está lista la carga de movimientos de tu archivo");
+          });
+
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       handleScroll(e.deltaY);
     };
+
 
     let touchStartY = 0;
 
@@ -90,6 +100,8 @@ export default function Wrapped(props: any) {
       window.removeEventListener('wheel', onWheel);
       window.removeEventListener('touchstart', onTouchStart);
       window.removeEventListener('touchend', onTouchEnd);
+
+        (window as any).Echo.leaveChannel(`App.Models.User.${props.auth.user.id}`);
     };
   }, [currentIndex, totalSlides, isLoading]); // Added isLoading to dependencies
 
@@ -241,6 +253,7 @@ export default function Wrapped(props: any) {
           )}
         </div>
       </div>
+        <ToastContainer />
     </AuthenticatedLayout>
   );
 }

@@ -6,13 +6,15 @@ use App\Models\FintocBankLink;
 use App\Models\Movement;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 
 class GetFintocMovementsJob implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, Batchable;
 
     /**
      * Create a new job instance.
@@ -27,6 +29,10 @@ class GetFintocMovementsJob implements ShouldQueue
      */
     public function handle(): void
     {
+        if ($this->batch()->cancelled()) {
+            return;
+        }
+
         $linkToken = $this->fintocBankLink->link_token;
 
         foreach($this->fintocBankLink->accounts as $account) {
@@ -38,13 +44,15 @@ class GetFintocMovementsJob implements ShouldQueue
                     'fintoc_account_id' => $account['id'],
                     'date' => $date,
                     'description' => $movement['description'],
-                    'amount' => $movement['amount'],
+                    'amount' => $account['type'] == 'credit_card' ? -$movement['amount'] : $movement['amount'],
                     'currency' => $movement['currency'],
                 ], []);
             }
         }
 
-        dispatch(new CategorizeWrappedMovements($this->user));
-        dispatch(new CategorizeMovements($this->user));
+        $this->batch()->add([
+            [new CategorizeWrappedMovements($this->user)],
+            [new CategorizeMovements($this->user)]
+        ]);
     }
 }
