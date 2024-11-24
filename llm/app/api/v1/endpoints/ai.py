@@ -102,9 +102,9 @@ async def categorize_endpoint(request: CategorizeRequest):
 
     return resp.model_dump()
 
-@router.post("/categorize-document", response_model=ExpensedItems)
+@router.post("/categorize-document", response_model=ExpensedItemsWrapped)
 async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
-    results: ExpensedItems = ExpensedItems(expensed_items=[])
+    results: ExpensedItemsWrapped = ExpensedItemsWrapped(expensed_items=[])
     processed_files = await process_uploaded_files(files)
     
 
@@ -120,7 +120,7 @@ async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
                     max_tokens=4096,
                     messages=[{"role": "system", "content": "Categorize the provided transactions and identify the individual items or transfers. For transactions from MercadoLibre, Shein, or AliExpress, assign them to their specific categories (e.g., 'mercadoLibre', 'shein', 'aliexpress') instead of using the general 'shopping' category."},
                               {"role": "user", "content": file_data['content']}],
-                    response_model=ExpensedItems,
+                    response_model=ExpensedItemsWrapped,
                 )
             else:
                 messages = [
@@ -141,7 +141,7 @@ async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
                 resp = await openai_client.chat.completions.create(
                     model="gpt-4o",
                     messages=messages,
-                    response_model=ExpensedItems,
+                    response_model=ExpensedItemsWrapped,
                 )
             return resp.expensed_items
         except Exception as e:
