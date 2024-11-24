@@ -60,6 +60,11 @@ export default function Dashboard() {
         setInputValue(''); // Clear input after sending
     };
 
+    function start(e: any) {
+        router.visit('add-bank');
+        e.preventDefault();
+    }
+
     return (
         <AuthenticatedLayout>
             <Head title="Dashboard" />
@@ -96,50 +101,66 @@ export default function Dashboard() {
                     {/* Initial Content */}
                     {!uploadComplete && !isLoading && (
                         <>
-                            <div className="my-2 flex">
-                            <button onClick={getMovements} className="ml-auto rounded bg-gray-600 px-10 py-2 text-white">
-                                Obtener movimientos
-                            </button>
-                            </div>
-                            <div className="rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800">
+                            <div className="mb-10 rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800 dark:text-white">
                                 <div className="mb-8 text-center">
                                     <h1 className="mb-4 text-4xl font-bold text-gray-800 dark:text-gray-100">
                                         ¿Tas clarito? 🤑
                                     </h1>
                                     <p className="text-lg text-gray-600 dark:text-gray-400">
-                                        ¡Sube tu rendición de gastos y accede a
-                                        tus estadísticas!
+                                        Apuesto que no sabes en que gastas la plata. <br/>
+                                        Revisa cuanto gastas en delivery, compras en China y mucho más.
                                     </p>
-                                </div>
 
-                                <div className="mb-4">
-                                    <FileUpload
-                                        onUploadComplete={handleUploadComplete}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                    <button
-                                        className="flex w-full items-center justify-center rounded-lg bg-indigo-900 py-4 font-semibold text-white hover:bg-indigo-800 focus:outline-none"
-                                        onClick={() => router.visit('add-bank')}
-                                    >
-                                        <IconFintoc />
-                                    </button>
-
-                                    <button
-                                        className="flex w-full items-center justify-center rounded-lg bg-indigo-900 py-4 font-semibold text-white hover:bg-indigo-800 focus:outline-none"
-                                        onClick={() =>
-                                            console.log('Fintoc Login Clicked')
-                                        }
-                                    >
-                                        <IconGoogle />
-                                    </button>
+                                    <div className="mx-auto mt-10 flex items-center justify-center">
+                                        <a
+                                            href=""
+                                            onClick={start}
+                                            className="rounded-lg bg-green-700 px-20 py-3 text-white"
+                                        >
+                                            Démosle
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
+                            {/*<div className="rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800">*/}
+                            {/*    <div className="mb-8 text-center">*/}
+                            {/*        <h1 className="mb-4 text-4xl font-bold text-gray-800 dark:text-gray-100">*/}
+                            {/*            ¿Tas clarito? 🤑*/}
+                            {/*        </h1>*/}
+                            {/*        <p className="text-lg text-gray-600 dark:text-gray-400">*/}
+                            {/*            ¡Sube tu rendición de gastos y accede a*/}
+                            {/*            tus estadísticas!*/}
+                            {/*        </p>*/}
+                            {/*    </div>*/}
+
+                            {/*    <div className="mb-4">*/}
+                            {/*        <FileUpload*/}
+                            {/*            onUploadComplete={handleUploadComplete}*/}
+                            {/*        />*/}
+                            {/*    </div>*/}
+
+                            {/*    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">*/}
+                            {/*        <button*/}
+                            {/*            className="flex w-full items-center justify-center rounded-lg bg-indigo-900 py-4 font-semibold text-white hover:bg-indigo-800 focus:outline-none"*/}
+                            {/*            onClick={() => router.visit('add-bank')}*/}
+                            {/*        >*/}
+                            {/*            <IconFintoc />*/}
+                            {/*        </button>*/}
+
+                            {/*        <button*/}
+                            {/*            className="flex w-full items-center justify-center rounded-lg bg-indigo-900 py-4 font-semibold text-white hover:bg-indigo-800 focus:outline-none"*/}
+                            {/*            onClick={() =>*/}
+                            {/*                console.log('Fintoc Login Clicked')*/}
+                            {/*            }*/}
+                            {/*        >*/}
+                            {/*            <IconGoogle />*/}
+                            {/*        </button>*/}
+                            {/*    </div>*/}
+                            {/*</div>*/}
                         </>
                     )}
                 </div>
             </div>
         </AuthenticatedLayout>
     );
-}
+                    }

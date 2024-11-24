@@ -7,7 +7,7 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
-class SaveBanksController extends Controller
+class StoreBanksController extends Controller
 {
     use ValidatesRequests;
 
@@ -24,7 +24,7 @@ class SaveBanksController extends Controller
 
         $link = (Http::fintoc()->get('links/exchange?exchange_token='.$exchangeToken)->json());
 
-        FintocBankLink::create([
+        $bankLink = FintocBankLink::create([
             'user_id' => auth()->id(),
             'fintoc_id' => $link['id'],
             'holder_id' => $link['holder_id'],
@@ -36,6 +36,6 @@ class SaveBanksController extends Controller
             'accounts' => $link['accounts'],
         ]);
 
-        return response()->json(['message' => 'Bank link saved successfully']);
+        return response()->json(['message' => 'Bank link saved successfully', 'id' => $bankLink->id]);
     }
 }
