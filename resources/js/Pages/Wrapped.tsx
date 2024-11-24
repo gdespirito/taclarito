@@ -20,6 +20,7 @@ export default function Wrapped(props:any) {
   const [currentMessage, setCurrentMessage] = useState(0);
   const [cards, setCards] = useState<CategoryCard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [total, setTotal] = useState(0);
 
   const messages = [
     'Contando las piscolas... 🥃',
@@ -87,45 +88,32 @@ export default function Wrapped(props:any) {
   }, [currentIndex, totalSlides]);
 
   useEffect(() => {
-    setTimeout(() => {
-      const fetchedCards = [
-        {
-          title: 'Delivery',
-          amount: '$1.560.000',
-          dateRange: '01 Jan - 31 Jan',
-          quantity: 10,
-          rant: 'Vamos bajando la cantidad de deliverys, ¿no?',
-          emoji: '🍔',
-        },
-        {
-          title: 'Food',
-          amount: '$200.000',
-          dateRange: '01 Jan - 31 Jan',
-          quantity: 10,
-          rant: 'ñam ñam',
-          emoji: '🍕',
-        },
-        {
-          title: 'Health',
-          amount: '$3.000.100',
-          dateRange: '01 Jan - 31 Jan',
-          quantity: 2,
-          rant: '¿Tantas pastillas? 💊',
-          emoji: '💊',
-        },
-        {
-          title: 'Shopping',
-          amount: '$500.000',
-          quantity: 98,
-          rant: '¿Otra vez comprando ropa? 👗',
-          dateRange: '01 Jan - 31 Jan',
-          emoji: '🛍️',
-        },
-      ];
-      setCards(fetchedCards);
-      setIsLoading(false);
-    }, 2000);
-  }, []);
+    const categories = props.categories;
+  
+    const fetchedCards:any = Object.keys(categories).map((key) => {
+      const category = categories[key];
+      return {
+        title: category.category.charAt(0).toUpperCase() + category.category.slice(1), // Capitalize the title
+        amount: `$${category.sum.toLocaleString()}`, // Format amount with currency
+        quantity: Math.ceil(category.sum / 1000), // Placeholder quantity logic
+        rant: `¿Estás gastando mucho en ${category.category}?`, // Placeholder rant
+        emoji: '💸', // Placeholder emoji
+      };
+    });
+  
+    // Calculate the total sum
+    const totalAmount:any = Object.values(categories).reduce((acc, category: any) => acc + category.sum, 0);
+  
+    setCards(fetchedCards);
+    setTotal(totalAmount);
+    setIsLoading(false);
+  }, [props.categories]);
+  
+  
+  const formattedMinDate = props.minDate.split(' ')[0];
+  const formattedMaxDate = props.maxDate.split(' ')[0];
+  
+  
 
   return (
     <AuthenticatedLayout>
@@ -154,17 +142,17 @@ export default function Wrapped(props:any) {
                 >
                   {card.isSummary ? (
                     <div className="flex flex-col items-center justify-center h-full px-6 w-full max-w-3xl">
-                      <h1 className="text-6xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text pb-3 text-center">
-                        Resumen de tus gastos
-                      </h1>
-                      <p className="text-lg text-gray-600 dark:text-gray-400 pb-3 text-center">
-                        Desde el 17 de enero al 20 de noviembre del 2024
-                        gastaste:
-                      </p>
-                      <p>
-                        <span className="text-4xl font-bold">$56.900.800</span>
-                      </p>
-                    </div>
+                    <h1 className="text-6xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text pb-3 text-center">
+                      Resumen de tus gastos
+                    </h1>
+                    <p className="text-lg text-gray-600 dark:text-gray-400 pb-3 text-center">
+                      Desde el {formattedMinDate} al {formattedMaxDate} gastaste:
+                    </p>
+                    <p>
+                    <span className="text-4xl font-bold">${total.toLocaleString()}</span>
+                    </p>
+                  </div>
+                  
                   ) : (
                     <div className="flex flex-col items-center justify-center h-full px-6 w-full max-w-3xl">
                       <div className="flex flex-col items-center justify-center h-full w-full rounded-xl bg-gradient-to-r p-8 text-black dark:text-white">
