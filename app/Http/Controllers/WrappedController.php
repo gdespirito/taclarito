@@ -28,8 +28,11 @@ class WrappedController extends Controller
                 ];
             })
             ->values();
-
+        $waitForFile = (bool) cache()->get("user-{$request->user()->id}-process-file");
+        $waitForFintoc = (bool) cache()->get("user-{$request->user()->id}-fintoc");
         return Inertia::render('Wrapped', ([
+            'waitForFile' => $waitForFile,
+            'waitForFintoc' => $waitForFintoc,
             'categories' => $categories,
             'minDate' => $minDate,
             'maxDate' => $maxDate,
