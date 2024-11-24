@@ -3,6 +3,7 @@
 use App\Http\Controllers\AddBankController;
 use App\Http\Controllers\AddFilesController;
 use App\Http\Controllers\GetMovementsController;
+use App\Http\Controllers\GetRoastController;
 use App\Http\Controllers\ListBanksController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StoreBanksController;
@@ -35,6 +36,7 @@ Route::get('/banks', ListBanksController::class)->name('banks.index');
 Route::get('/add-files', AddFilesController::class)->name('add-files');
 Route::get('/wrapped', WrappedController::class)->name('wrapped');
 Route::get('/movements', GetMovementsController::class)->name('movements.index');
+Route::get('/roast', GetRoastController::class)->name('roast.index');
 Route::post('/files', StoreFileController::class)->name('files.store');
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
