@@ -44,6 +44,6 @@ class GetFintocMovementsJob implements ShouldQueue
             }
         }
 
-        dispatch(new CategorizeMovements($this->user->id));
+        dispatch(new CategorizeMovements($this->user));
     }
 }
