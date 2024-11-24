@@ -11,6 +11,7 @@ from anthropic import AsyncAnthropicBedrock
 from openai import AsyncOpenAI
 import asyncio
 from datetime import datetime
+import hashlib
 from loguru import logger
 
 load_dotenv()
@@ -107,12 +108,23 @@ async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
     results: ExpensedItemsWrapped = ExpensedItemsWrapped(expensed_items=[])
     processed_files = await process_uploaded_files(files)
     
-
+    all_cached_results = []
+    def generate_file_hash(file_content):
+        return hashlib.sha256(file_content.encode()).hexdigest()
+    
     bedrock_client = instructor.from_anthropic(AsyncAnthropicBedrock())
     openai_client = instructor.from_openai(AsyncOpenAI())
 
     async def process_single_file(file_data):
         try:
+            file_hash = generate_file_hash(file_data['content'])
+
+            cached_results = get_cached_results(query=file_hash, database='document_cache')
+            if cached_results:
+                logger.info(f"Using cached results for file with hash: {file_hash}")
+                cached_data = json.loads(cached_results)
+                return ExpensedItemsWrapped(**cached_data).expensed_items
+            
             if file_data['type'] == 'text':
                 # Usar la función categorize para documentos de texto
                 resp = await bedrock_client.messages.create(
@@ -143,6 +155,13 @@ async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
                     messages=messages,
                     response_model=ExpensedItemsWrapped,
                 )
+
+                # Guardar en caché los resultados
+                serialized_data = resp.dict(by_alias=True, exclude_none=True)
+                json_data_results = json.dumps(serialized_data, default=lambda x: x.isoformat() if isinstance(x, datetime) else x)
+                cache_results(query=file_hash, results=json_data_results, database='document_cache')
+                log_results(query=file_hash, results=json_data_results)
+
             return resp.expensed_items
         except Exception as e:
             print(e)
@@ -152,8 +171,9 @@ async def categorize_document_endpoint(files: List[UploadFile] = File(...)):
     
     # Combinar todos los resultados
     for response in responses:
-        results.expensed_items.extend(response)
+        all_cached_results.extend(response)
 
+    results.expensed_items = all_cached_results
     return results
 
 @router.post("/roast", response_model=Roast)
