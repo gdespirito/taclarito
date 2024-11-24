@@ -33,10 +33,13 @@ class StoreSelectedAccounts extends Controller
         Bus::batch(new GetFintocMovementsJob(auth()->user(), $bankLink))
             ->finally(function (Batch $batch) {
                 event(new FinishedFintocImport($batch->options['user_id']));
+                cache()->delete("user-{$batch->options['user_id']}-fintoc");
             })
             ->withOption('user_id', auth()->user()->id)
             ->allowFailures()
             ->dispatch();
+
+        cache()->put("user-{$request->user()->id}-process-file", true);
 
         return response()->json(['message' => 'Accounts associated successfully.']);
 

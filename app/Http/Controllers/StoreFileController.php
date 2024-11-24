@@ -33,10 +33,12 @@ class StoreFileController extends Controller
         Bus::batch([new ProcessUploadedFileJob($uploadedFile)])
             ->finally(function (Batch $batch) {
                 event(new FinishedFileProcess($batch->options['user_id']));
+                cache()->delete("user-{$batch->options['user_id']}-process-file");
             })
             ->withOption('user_id', auth()->user()->id)
             ->allowFailures()->dispatch();
 
+        cache()->put("user-{$request->user()->id}-process-file", true);
         return response('', 201);
 
     }
