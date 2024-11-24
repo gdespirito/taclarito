@@ -33,14 +33,14 @@ class GetFintocMovementsJob implements ShouldQueue
             $response = Http::fintoc()->get("accounts/{$account['id']}/movements?link_token={$linkToken}")->json();
             foreach($response as $movement) {
                 $date = Carbon::parse($movement['transaction_date'] ?? $movement['post_date']);
-                Movement::create([
+                Movement::updateOrCreate([
                     'user_id' => $this->user->id,
                     'fintoc_account_id' => $account['id'],
                     'date' => $date,
                     'description' => $movement['description'],
                     'amount' => $movement['amount'],
                     'currency' => $movement['currency'],
-                ]);
+                ], []);
             }
         }
 
