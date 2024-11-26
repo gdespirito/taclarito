@@ -263,16 +263,16 @@ export default function Wrapped(props: any) {
                                                 </div>
                                             ) : (
                                                 <div className="flex h-full w-full max-w-3xl flex-col items-center justify-center px-6">
-                                                    <div className="flex h-full w-full flex-col items-center justify-center rounded-xl bg-gradient-to-r p-8 text-black dark:text-white">
+                                                    <div className="flex h-full w-full flex-col items-center justify-start md:justify-center pt-16 md:pt-6 rounded-xl bg-gradient-to-r p-8 text-black dark:text-white">
                                                         <span className="mb-6 animate-bounce text-8xl">
                                                             {'emoji' in card &&
                                                                 card.emoji}
                                                         </span>
-                                                        <h2 className="mb-4 text-center text-5xl font-extrabold tracking-wide">
+                                                        <h2 className="mb-4 text-center text-4xl md:text-5xl font-extrabold tracking-wide">
                                                             {'title' in card &&
                                                                 card.title}
                                                         </h2>
-                                                        <p className="mb-4 mt-2 rounded-lg bg-black px-4 py-2 text-6xl font-extrabold text-white shadow-md dark:bg-white dark:text-gray-800">
+                                                        <p className="mb-4 mt-2 rounded-lg bg-black px-4 py-2 text-4xl md:text-6xl font-extrabold text-white shadow-md dark:bg-white dark:text-gray-800">
                                                             {'amount' in card &&
                                                                 card.amount}
                                                         </p>
@@ -301,24 +301,7 @@ export default function Wrapped(props: any) {
                         </>
                     )}
                 </div>
-                <div className="absolute bottom-10 left-10">
-                    <Link 
-                            href={route('movements.index')}
-                        className="flex items-center rounded-lg bg-purple-900 px-4 py-2 font-semibold text-white shadow hover:bg-purple-800 focus:outline-none"
-                    >
-                        Movimientos
-                    </Link>
-                </div>
-
-                <div className="absolute bottom-10 right-10">
-                    <button
-                        onClick={() => setCurrentIndex(0)}
-                        className="flex items-center rounded-lg bg-purple-900 px-4 py-2 font-semibold text-white shadow hover:bg-purple-800 focus:outline-none"
-                    >
-                        🚀
-                        <span className="ml-2">up</span>
-                    </button>
-                </div>
+          
             </div>
             <ToastContainer />
         </AuthenticatedLayout>
