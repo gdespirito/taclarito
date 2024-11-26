@@ -263,7 +263,7 @@ export default function Wrapped(props: any) {
                                                 </div>
                                             ) : (
                                                 <div className="flex h-full w-full max-w-3xl flex-col items-center justify-center px-6">
-                                                    <div className="flex h-full w-full flex-col items-center justify-start md:justify-center pt-16 md:pt-6 rounded-xl bg-gradient-to-r p-8 text-black dark:text-white">
+                                                    <div className="flex h-full w-full flex-col items-center justify-center  rounded-xl bg-gradient-to-r p-8 text-black dark:text-white">
                                                         <span className="mb-6 animate-bounce text-8xl">
                                                             {'emoji' in card &&
                                                                 card.emoji}
@@ -287,7 +287,7 @@ export default function Wrapped(props: any) {
                                                                     ? 'compra'
                                                                     : 'compras')}
                                                         </p>
-                                                        <p className="mt-4 text-center text-2xl font-light italic dark:text-gray-200">
+                                                        <p className="mt-4 text-center text-xl sm:text-2xl font-light italic dark:text-gray-200">
                                                             {'rant' in card &&
                                                                 card.rant}
                                                         </p>
